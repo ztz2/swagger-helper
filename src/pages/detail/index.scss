@@ -1,0 +1,67 @@
+.layout {
+  height: 100vh;
+  display: flex;
+  .layoutLeft{
+    flex-shrink: 0;
+    width: 310px;
+    height: 100%;
+    overflow: hidden;
+    overflow-y: auto;
+    background: #1e282c;
+    color: #fff;
+    /* 滚动条整体 */
+    &::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    /* 两个滚动条交接处 -- x轴和y轴 */
+    &::-webkit-scrollbar-corner {
+      background-color: transparent;
+    }
+    /* 滚动条滑块 */
+    &::-webkit-scrollbar-thumb {
+      border-radius: 10px;
+      -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+      background: #469aed;
+    }
+    /* 滚动条轨道 */
+    &::-webkit-scrollbar-track {
+      -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      background: #001529;
+    }
+    /* 滚动条两端按钮 */
+    &::-webkit-scrollbar-button {}
+
+
+  }
+  .layoutRight{
+    flex-grow: 1;
+    overflow: auto;
+    .layoutRightTop{
+      width: 100%;
+      box-shadow: 0 1px 4px rgb(0 21 41 / 8%);
+      height: 58px;
+      position: sticky;
+      top: 0;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 1;
+    }
+    .layoutRightContent{
+      padding: 24px;
+    }
+    .apiContent{
+      margin-top: 10px;
+    }
+    .apiItem{
+      margin-bottom: 40px;
+      &:last-child{
+        margin-bottom: 0;
+      }
+    }
+  }
+}

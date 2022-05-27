@@ -1,0 +1,34 @@
+.codeBoxWrap{
+  height: 100%;
+  @at-root .codeBoxContent{
+    position: relative;
+    height: inherit;
+    > pre{
+      height: inherit;
+      overflow: auto;
+      margin-bottom: 0;
+      > code{
+        overflow-x: visible;
+      }
+    }
+    @at-root .codeBoxInCollapse{
+      margin: -16px -16px;
+    }
+    @at-root .codeBoxHandle{
+      position: absolute;
+      right: 30px;
+      top: 20px;
+      z-index: 10;
+      color: #fff;
+      > * {
+        opacity: .5;
+        cursor: pointer;
+        user-select: none;
+        transition: .25s;
+        &:hover{
+          opacity: 1;
+        }
+      }
+    }
+  }
+}
