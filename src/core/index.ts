@@ -13,7 +13,8 @@ import ex from 'umi/dist';
 import { getSwagger } from '@/api';
 import SwaggerParser from '@apidevtools/swagger-parser';
 import { message } from 'antd';
-import { merge } from 'lodash';
+import _, { merge } from 'lodash';
+import { getInitApiTplMockData } from '@/pages/detail/components/dialog-tpl-edit/tpl';
 
 const filterType = (type = ''): string => {
   switch (type) {
@@ -167,7 +168,7 @@ export const convertSwaggerData = (apiSource: any): any => {
   const result: Array<ProjectModuleInterface> = [];
   const version = apiSource.swagger ?? apiSource.openapi;
   const isV3 = !!version?.startsWith('3');
-  tags.forEach((tag: any) => {
+  for (const tag of tags) {
     const tagName = tag.name;
     const projectModule = new ProjectModule();
     const recordMethodName = new Map();
@@ -194,7 +195,7 @@ export const convertSwaggerData = (apiSource: any): any => {
         // @ts-ignore
         const responsesSchema = isV3 ? api?.responses['200']?.content?.['application/json']?.schema : api?.responses['200']?.schema;
         // @ts-ignore
-        if (api.consumes && api.consumes[0]) { // @ts-ignore
+        if (api?.consumes?.[0]) { // @ts-ignore
           nowApi.requestContentType = api.consumes[0];
         }
         // schemaToTree
@@ -245,7 +246,7 @@ export const convertSwaggerData = (apiSource: any): any => {
         }
       }
     }
-  });
+  }
   // 增加测试用例
   // result.unshift(new TestProjectModule());
   return result;
@@ -261,6 +262,7 @@ export const swaggerParser = async (param: Project, showErrorMsg = true) => {
     showErrorMsg && message.error(errText);
     throw Error(errText);
   }
+  console.log('api', api);
   const modules = convertSwaggerData(api);
   if (modules.length === 0) {
     const errText = '没有模块可以生成';
@@ -279,5 +281,36 @@ export const swaggerParser = async (param: Project, showErrorMsg = true) => {
     baseURL = (api.basePath ? `'${api.basePath}'` : '')
   }
   result.baseURL = baseURL;
+  return result;
+}
+
+export const generateTpl = function(tpl: string, ...params: Array<any>) {
+  let result: Array<string> = [];
+  try {
+    const lodash = _;
+    const exe = { renderTpl: null };
+    eval(tpl + `exe.renderTpl = typeof renderTpl === 'function' ? renderTpl : null`);
+    if (typeof exe.renderTpl !== 'function') {
+      throw Error('模板中缺少 renderTpl 函数');
+    }
+    // @ts-ignore
+    result = exe.renderTpl.apply(null, params);
+    if (!Array.isArray(result)) {
+      throw Error('renderTpl 函数返回值数据类型为： Array<string>');
+    }
+    if (result.length === 0) {
+      result = ['没有可以生成的模板']
+    } else if (typeof result[0] !== 'string') {
+      throw Error('renderTpl 函数返回值数据类型为： Array<string>');
+    }
+  } catch (e: any) {
+    if (typeof e === 'string') {
+      result = [e];
+      message.error(e);
+    } else if (typeof e?.message === 'string') {
+      result = [e.message];
+      message.error(e.message);
+    }
+  }
   return result;
 }

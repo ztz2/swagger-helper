@@ -2,11 +2,9 @@ import React, { FC, useState } from 'react';
 import { IndexModelState, ConnectProps, Loading, connect, Link } from 'umi';
 import { Form, Input, Modal, Space, Table, Button, message, Popconfirm } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
-import SwaggerParser from '@apidevtools/swagger-parser';
-import { getSwagger, importSwagger } from '@/api';
-import { cloneDeep, merge } from 'lodash';
+import { merge } from 'lodash';
 import { Project } from '@/core/types';
-import { convertSwaggerData, swaggerParser } from '@/core';
+import { swaggerParser } from '@/core';
 
 
 interface HomePageProps extends ConnectProps {
@@ -77,7 +75,7 @@ const HomePage: FC<HomePageProps> = ({swagger, dispatch}) => {
   }
 
   return(
-    <div>
+    <div style={{padding: '20px 24px'}}>
       <div style={{marginBottom: '10px'}}>
         <Space>
           <Button type="primary" onClick={() => setVisibleAdd(true)}>添加</Button>

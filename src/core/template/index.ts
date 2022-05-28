@@ -6,6 +6,11 @@ const template = require('@/utils/art-template');
 
 const mergeBlank = (value: any, num = 0) => Array.from({ length: num }).map(() => value).join('');
 
+// @ts-ignore
+if (window.template == null) {
+  // @ts-ignore
+  window.template = template;
+}
 template.defaults.escape = false;
 template.defaults.minimize = false;
 template.defaults.imports.generateEntityField = (field: FieldInterface, options: any, num: number) => {
@@ -27,38 +32,8 @@ export interface GenerateApiTplOptions {
   onlyApi: boolean
   cancelSameRequest: boolean
   headText: string
+  tpl: ''
 }
-// 接口模板
-export const generateApiTpl = (apiList: ProjectModuleInterface['apiList'], options: GenerateApiTplOptions) => {
-  // @ts-ignore
-  options = merge({
-    baseURL: '',
-    onlyApi: false,
-    cancelSameRequest: true,
-    headText: '',
-  }, options ?? {});
-  const tpl = `{{if !options.onlyApi}}{{if options.headText}}{{options.headText}}\n\n{{/if}}{{/if}}{{each apiList}}{{if $value.label}}// {{$value.label}}{{/if}}
-export function {{$value.methodName}}(data) {
-  return request({<% if (options.cancelSameRequest) { %>
-    cancelSameRequest: true,<% } %>{{if options.baseURL}}
-    baseURL: {{options.baseURL}},{{/if}}
-    url: {{if $value.methodUrl.includes('{')}}\`{{else}}'{{/if}}{{$value.methodUrl}}{{if $value.methodUrl.includes('{')}}\`{{else}}'{{/if}},
-    method: '{{$value.method}}',
-    {{if $value.method === 'get' || $value.requestContentType.includes('application/x-www-form-urlencoded')}}params: data{{else}}data{{/if}}
-  })
-}{{if $index < apiList.length - 1}}\n{{/if}}{{if $index < apiList.length - 1}}\n{{/if}}{{/each}}\n`;
-  return template.render(tpl, { apiList, options });
-};
-// 接口方法导入模板
-export const generateApiMethodImportTpl = (apiList: ProjectModuleInterface['apiList'], options: {}) => {
-  // @ts-ignore
-  options = merge({}, options ?? {});
-  // @ts-ignore
-  apiList = sortBy(apiList, (item) => item.methodName.length);
-  // const tpl = '{{if apiList.length > 0}}import {<% for(var i = 0; i < apiList.length; i++){ %>{{if apiList.length > 2}}\n {{/if}} <%= apiList[i].methodName %>{{if i < apiList.length - 1}},{{/if}}<% } %>{{if apiList.length > 2}}\n{{else}} {{/if}}} from \'@/api\'{{/if}}';
-  const tpl = '{{if apiList.length > 0}}import {<% for(var i = 0; i < apiList.length; i++){ %>{{if apiList[i].label}}\n  // {{apiList[i].label}}{{/if}}\n  <%= apiList[i].methodName %>{{if i < apiList.length - 1}},{{/if}}<% } %>\n} from \'@/api\'{{/if}}';
-  return template.render(tpl, { apiList, options });
-};
 
 // 表格模板
 export const generateTableTpl = (requests: Array<FieldInterface> = [], responses: Array<FieldInterface> = [], options?: {curd: boolean}) => {

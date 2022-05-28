@@ -1,4 +1,5 @@
 import { defineConfig } from 'umi';
+// const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 import routes from './routes';
 
 export default defineConfig({
@@ -18,4 +19,9 @@ export default defineConfig({
       // }
     },
   },
+  // chainWebpack(memo, { env, webpack, createCSSRule }) {
+  //   memo
+  //     .plugin('monaco')
+  //     .use(MonacoWebpackPlugin, [{languages: ['json']}]);
+  // },
 });
