@@ -80,7 +80,7 @@ const TplModel: TplModelType = {
           t.isDefault = t.uid === value;
         });
       }
-      return {...state};
+      return {...state, [type]: [...state[type]]};
     },
     update(state: TplModelState, action: any) {
       const { type, value } = action.payload;

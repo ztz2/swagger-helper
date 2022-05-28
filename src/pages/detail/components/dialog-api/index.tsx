@@ -169,7 +169,7 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
         <Row gutter={20}>
           <Col span={6}>
             <Space style={{marginBottom: 16, display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap'}}>
-              <Button type="primary" onClick={handleAdd}>新增API模板</Button>
+              <Button type="primary" onClick={handleAdd}>新增模板</Button>
               <Button type="primary" disabled={!watchTpl} onClick={handleEditTpl}>编辑模板</Button>
               <Button onClick={() => {dispatch?.({type: 'tpl/setDefault', payload: {value: watchTpl, type: 'api'}}); message.success('操作成功')}} disabled={!watchTpl} >设置为默认模板</Button>
             </Space>
