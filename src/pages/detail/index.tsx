@@ -127,7 +127,7 @@ const DetailPage: FC<DetailPageProps> = ({swagger, tpl, apiTplList, dispatch}) =
                       >
                         <Alert
                           message="注意"
-                          description="导入已经存在或者重复的模板，导入的模板会覆盖已有的模板！将导出的内容，复制到输入框。"
+                          description="导入已经存在或者重复的模板，导入的模板会覆盖已有的模板！"
                           type="warning"
                           style={{marginBottom: 10}}
                           showIcon
@@ -136,7 +136,7 @@ const DetailPage: FC<DetailPageProps> = ({swagger, tpl, apiTplList, dispatch}) =
                           rows={6}
                           value={importText}
                           onChange={(e: Event) => setImportText(e.target.value)}
-                          placeholder="模板内容"
+                          placeholder="将导出的内容，复制到输入框"
                         />
                       </Modal>
                       <Button type="primary" onClick={() => setVisibleImport(true)}>导入模板</Button>
