@@ -73,7 +73,7 @@ const DetailPage: FC<DetailPageProps> = ({swagger, tpl, apiTplList, dispatch}) =
   };
 
   const handleSelect = (apiList: Array<ApiInterface>) => {
-    setSelectApiList(apiList);
+    setSelectApiList([...apiList]);
   }
 
   return(

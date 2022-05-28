@@ -77,14 +77,11 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
   };
 
   const onFinish = (values: GenerateApiTplOptions, isDefaultAction?: boolean) => {
-    values = cloneDeep(values);
     const entity = apiTplList.find((t: Tpl) => t.uid === values.tpl);
     if (!entity) {
       return
     }
-    // @ts-ignore
-    delete values.tpl;
-    setOptions(values);
+    setOptions({...values});
     dispatch?.({type: 'swagger/update', payload: { project, data: pick(values, UPDATE_FIELDS)}});
     setTplCodeList(generateTpl(entity.value, items, values));
     if (!isDefaultAction) {
