@@ -2,7 +2,7 @@ import React, { FC, useState, useEffect } from 'react';
 import { IndexModelState, ConnectProps, connect } from 'umi';
 import { Select, Row, Col, Radio, Form, Input, Modal, Space, Button, message } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
-import { cloneDeep, find, pick } from 'lodash';
+import { find, pick } from 'lodash';
 
 import { Tpl } from '@/models/tpl';
 import { generateTpl } from '@/core';
@@ -10,7 +10,7 @@ import CodeBox from '@/components/code-box';
 import { API_TPL_DEMO1 } from '@/constants/tpl/api';
 import { ApiInterface, Project } from '@/core/types';
 import { GenerateApiTplOptions } from '@/core/template';
-import DialogTplEdit from '@/pages/detail/components/dialog-tpl-edit';
+import DialogApiEdit from '@/pages/detail/components/dialog-api-edit';
 
 
 const { Option } = Select;
@@ -77,13 +77,13 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
   };
 
   const onFinish = (values: GenerateApiTplOptions, isDefaultAction?: boolean) => {
-    const entity = apiTplList.find((t: Tpl) => t.uid === values.tpl);
-    if (!entity) {
+    const tplEntity = apiTplList.find((t: Tpl) => t.uid === values.tpl);
+    if (!tplEntity) {
       return
     }
     setOptions({...values});
     dispatch?.({type: 'swagger/update', payload: { project, data: pick(values, UPDATE_FIELDS)}});
-    setTplCodeList(generateTpl(entity.value, items, values));
+    setTplCodeList(generateTpl(tplEntity.value, items, values));
     if (!isDefaultAction) {
       message.success('已生成');
     }
@@ -110,7 +110,7 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
     if (!p) {
       return message.warn('请选择模板');
     }
-    if (p.type === -1) {
+    if (p.type < 0) {
       Modal.confirm({
         title: '提示',
         icon: <ExclamationCircleOutlined />,
@@ -119,7 +119,7 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
         cancelText: '取消',
         onOk() {
           const copyTpl = Object.assign(new Tpl(), p, {
-            type: 0,
+            type: 1,
             uid: null,
           });
           copyTpl.name +=  '- 副本';
@@ -135,7 +135,7 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
 
   return(
     <>
-      <DialogTplEdit
+      <DialogApiEdit
         options={options}
         tplEntity={editTpl}
         visible={visibleDialogTplEdit}
@@ -153,7 +153,7 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
       />
       <Modal
         width="96%"
-        title="生成API"
+        title="生成(API)"
         className="tpl-dialog"
         visible={visible}
         onCancel={() => onChangeVisible?.(false)}
@@ -164,17 +164,19 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
         ]}
       >
         <Row gutter={20}>
-          <Col span={6}>
+          <Col span={7}>
             <Space style={{marginBottom: 16, display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap'}}>
-              <Button type="primary" onClick={handleAdd}>新增模板</Button>
-              <Button type="primary" disabled={!watchTpl} onClick={handleEditTpl}>编辑模板</Button>
+              <Button onClick={handleAdd}>新增模板</Button>
+              <Button disabled={!watchTpl} onClick={handleEditTpl}>编辑模板</Button>
               <Button onClick={() => {dispatch?.({type: 'tpl/setDefault', payload: {value: watchTpl, type: 'api'}}); message.success('操作成功')}} disabled={!watchTpl} >设置为默认模板</Button>
+              <Button type="primary" onClick={() => formRef.submit()} style={{marginLeft: 30}}>立即生成</Button>
             </Space>
             <Form
               form={formRef}
               {...formItemLayout}
               initialValues={options}
               onFinish={onFinish}
+              style={{ marginTop: 30 }}
             >
               <Form.Item name="tpl" label="选择模板" rules={[{ required: true, message: '必选项' }]}>
                 <Select allowClear>
@@ -200,14 +202,9 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
                   </>
                 )
               }
-              <div className="text-align-right">
-                <Button type="primary" htmlType="submit">
-                  立即生成
-                </Button>
-              </div>
             </Form>
           </Col>
-          <Col span={18}>
+          <Col span={17}>
             <Row gutter={20}>
               {tplCodeList.map((t) => (
                 <Col span={24 / tplCodeList.length}>

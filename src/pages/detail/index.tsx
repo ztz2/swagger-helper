@@ -1,5 +1,5 @@
 import React, { FC, useState, useEffect, useRef } from 'react';
-import { IndexModelState, ConnectProps, Loading, connect, Link, useParams } from 'umi';
+import { IndexModelState, ConnectProps, connect, useParams } from 'umi';
 import { Tooltip, Result, Alert, Tag, Collapse, Spin, Empty, Space, Button, message, Modal, Input } from 'antd';
 import { SmileOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 
@@ -15,6 +15,8 @@ import DialogApi from './components/dialog-api';
 import styles from './index.scss';
 import { Tpl } from '@/models/tpl';
 import { copyToClipboard } from '@/utils';
+import DialogReqResp from '@/pages/detail/components/dialog-req-resp';
+import { REQ_RESP_TPL6000 } from '@/constants/tpl/req-resp';
 
 const { Panel } = Collapse;
 const { TextArea } = Input;
@@ -28,11 +30,13 @@ const DetailPage: FC<DetailPageProps> = ({swagger, tpl, apiTplList, dispatch}) =
   const [project, setProject] = useState<Project>(new Project());
   const [selectApiList, setSelectApiList] = useState<Array<ApiInterface>>([]);
   const [visibleDialogApi, setVisibleDialogApi] = useState<boolean>(false);
+  const [visibleDialogReqResp, setVisibleDialogReqResp] = useState<boolean>(false);
   const [apiTpl, setApiTpl] = useState<Tpl>(new Tpl());
   const [importText, setImportText] = useState<string>('');
   const [visibleImport, setVisibleImport] = useState<boolean>(false);
 
   useEffect(() => {
+    console.log(tpl);
     const { uid } = urlParams;
     const s = swagger.list.find((t: Project) => t.uid === uid);
     if (!s) {
@@ -57,7 +61,7 @@ const DetailPage: FC<DetailPageProps> = ({swagger, tpl, apiTplList, dispatch}) =
     const record = {};
     for (const [key, value] of Object.entries(tpl)) {
       // @ts-ignore
-      const p = value.filter((t: Tpl) => t.type !== -1);
+      const p = value.filter((t: Tpl) => t.type > 0);
       if (p.length > 0) {
         // @ts-ignore
         record[key] = p;
@@ -100,7 +104,16 @@ const DetailPage: FC<DetailPageProps> = ({swagger, tpl, apiTplList, dispatch}) =
                           visible={visibleDialogApi}
                           onChangeVisible={(v) => { setVisibleDialogApi(v) }}
                         />
-                        <Button type="primary" disabled={selectApiList.length === 0} onClick={() => {setVisibleDialogApi(true);}}>生成API</Button>
+                        <Button type="primary" disabled={selectApiList.length === 0} onClick={() => {setVisibleDialogApi(true);}}>生成(API)</Button>
+                      </>
+                      <>
+                        <DialogReqResp
+                          project={project}
+                          items={selectApiList}
+                          visible={visibleDialogReqResp}
+                          onChangeVisible={(v) => { setVisibleDialogReqResp(v) }}
+                        />
+                        <Button type="primary" disabled={selectApiList.length === 0} onClick={() => {setVisibleDialogReqResp(true);}}>生成(请求参数 | 响应数据)</Button>
                       </>
                       <Button type="primary" onClick={handleExport}>
                         <Tooltip title="模板数据全部存储在浏览器本地，清除缓存之后，所有自定义模板将会丢失，导出模板，自己保存。">
@@ -176,12 +189,12 @@ const DetailPage: FC<DetailPageProps> = ({swagger, tpl, apiTplList, dispatch}) =
                             </Panel>
                             <Panel header="请求参数" key="2">
                               <div>
-                                <CodeBox code={gef(api.requests)} inCollapse />
+                                <CodeBox code={generateTpl(REQ_RESP_TPL6000, api.requests, [])[0] } inCollapse />
                               </div>
                             </Panel>
                             <Panel header="响应参数" key="3">
                               <div>
-                                <CodeBox code={gef(api.responses)} inCollapse />
+                                <CodeBox code={generateTpl(REQ_RESP_TPL6000, [], api.responses)[1]} inCollapse />
                               </div>
                             </Panel>
                           </Collapse>

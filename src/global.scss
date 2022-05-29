@@ -16,6 +16,9 @@ textarea.ant-input{
 .text-align-right{
   text-align: right;
 }
+.white-space-nowrap{
+  white-space: nowrap;
+}
 
 .tpl-dialog{
   top: 40px;
@@ -57,7 +60,9 @@ textarea.ant-input{
       }
       >div:nth-child(1){
         flex-shrink: 0;
-        margin-bottom: 14px;
+        &~*{
+          margin-top: 14px;
+        }
         .ant-form-item{
           margin-bottom: 0;
         }
@@ -84,4 +89,49 @@ textarea.ant-input{
   }
 }
 
-
+.tpl-dialog__req-resp{
+  .ant-form{
+    .ant-form-item{
+      margin-bottom: 6px;
+    }
+  }
+  .ant-modal-body{
+    >.ant-row >.ant-col:nth-child(1) {
+      display: flex;
+      flex-direction: column;
+      >div{
+        flex-shrink: 0;
+      }
+      >form{
+        flex-grow: 1;
+        height: 0;
+        display: flex;
+        flex-direction: column;
+        >*:nth-child(1){
+          flex-shrink: 0;
+        }
+        >*:nth-child(2){
+          flex-grow: 1;
+          height: 0;
+          >* {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            height: 100%;
+            >div:nth-child(1){
+              flex-shrink: 0;
+              font-size: 16px;
+              margin-top: 10px;
+              margin-bottom: 10px;
+              padding-left: 8px;
+            }
+            >div:nth-child(2){
+              flex-grow: 1;
+              overflow: auto;
+            }
+          }
+        }
+      }
+    }
+  }
+}

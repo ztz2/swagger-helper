@@ -13,8 +13,15 @@ import ex from 'umi/dist';
 import { getSwagger } from '@/api';
 import SwaggerParser from '@apidevtools/swagger-parser';
 import { message } from 'antd';
-import _, { merge } from 'lodash';
-import { getInitApiTplMockData } from '@/pages/detail/components/dialog-tpl-edit/tpl';
+import _, { cloneDeep, merge } from 'lodash';
+import { getInitApiTplMockData } from '@/pages/detail/components/dialog-api-edit/tpl';
+import { listToTree, treeToList } from '@/utils/tree';
+
+const template = require('@/utils/art-template');
+// @ts-ignore
+if (window.template == null) { window.template = template; }
+template.defaults.escape = false;
+template.defaults.minimize = false;
 
 const filterType = (type = ''): string => {
   switch (type) {
@@ -286,6 +293,7 @@ export const swaggerParser = async (param: Project, showErrorMsg = true) => {
 
 export const generateTpl = function(tpl: string, ...params: Array<any>) {
   let result: Array<string> = [];
+
   try {
     const lodash = _;
     const exe = { renderTpl: null };
@@ -304,6 +312,7 @@ export const generateTpl = function(tpl: string, ...params: Array<any>) {
       throw Error('renderTpl 函数返回值数据类型为： Array<string>');
     }
   } catch (e: any) {
+    // console.error(e);
     if (typeof e === 'string') {
       result = [e];
       message.error(e);
@@ -314,3 +323,59 @@ export const generateTpl = function(tpl: string, ...params: Array<any>) {
   }
   return result;
 }
+
+export const processFieldTree = (source:Array<FieldInterface>, value:Array<FieldInterface>) => {
+  if (value.length <= 1) {
+    return value;
+  }
+  const memo = {}; // @ts-ignore
+  treeToList(cloneDeep(source)).forEach((t) => { memo[t.uid] = t });
+  const res = [];
+  const parents = {};
+  const uidList = new Set();
+  value.forEach((p) => {
+    const u = p.uid;
+    uidList.add(u);
+    while (p) {
+      if (Array.isArray(parents[u])) {
+        parents[u].push(p.parentUid);
+      } else {
+        parents[u] = [p.parentUid];
+      }
+      p = memo[p.parentUid];
+    }
+  });
+  let removeCount = 0;
+  let isBreak = false;
+  let record = '';
+  const t = Object.entries(parents);
+  while (true) {
+    for (let i = 0; i < t.length; i++) {
+      const [k, v] = t[i];
+      const n = v[v.length - (removeCount + 1)];
+      if (i === 0) {
+        record = n;
+      }
+      if (n === undefined || n !== record) {
+        isBreak = true;
+        break;
+      }
+      if (i === t.length - 1) {
+        removeCount++;
+      }
+    }
+    if (isBreak) {
+      break;
+    }
+  }
+  if (removeCount) {
+    for (const [k, v] of Object.entries(parents)) {
+      // @ts-ignore
+      v.splice(v.length - removeCount, v.length);v.forEach((uid) => uidList.add(uid));
+    }
+  }
+  uidList.forEach((uid: string) => {
+    res.push(memo[uid])
+  });
+  return listToTree(res, { id: 'uid', pid: 'parentUid' });
+};

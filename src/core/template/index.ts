@@ -7,24 +7,21 @@ const template = require('@/utils/art-template');
 const mergeBlank = (value: any, num = 0) => Array.from({ length: num }).map(() => value).join('');
 
 // @ts-ignore
-if (window.template == null) {
-  // @ts-ignore
-  window.template = template;
-}
+if (window.template == null) { window.template = template; }
 template.defaults.escape = false;
 template.defaults.minimize = false;
 template.defaults.imports.generateEntityField = (field: FieldInterface, options: any, num: number) => {
   const gap = '  ';
-  const tpl = `<% if (data.type==='array') { %>[<% } %>{
-{{each data.children}}{{if $value.label || $value.typeValue}}${mergeBlank(gap, num + 1)}// {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n{{/if}}${mergeBlank(gap, num + 1)}{{$value.key}}: {{if $value.type === 'object' || $value.type === 'array'}}<%= $imports.generateEntityField($value, options, ${num + 1}) %>{{else if $value.type !== 'object' || $value.type !== 'array'}}{{$value.defaultValue}}{{else}}null{{/if}}{{if $index < data.children.length-1}},\n{{/if}}{{/each}}
-${mergeBlank(gap, num)}}<% if (data.type==='array') { %>]<% } %>`;
+  const tpl = `<% if (field.type==='array') { %>[<% } %>{
+{{each field.children}}{{if $value.label || $value.typeValue}}${mergeBlank(gap, num + 1)}// {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n{{/if}}${mergeBlank(gap, num + 1)}{{$value.key}}: {{if $value.type === 'object' || $value.type === 'array'}}<%= $imports.generateEntityField($value, options, ${num + 1}) %>{{else if $value.type !== 'object' || $value.type !== 'array'}}{{$value.defaultValue}}{{else}}null{{/if}}{{if $index < field.children.length-1}},\n{{/if}}{{/each}}
+${mergeBlank(gap, num)}}<% if (field.type==='array') { %>]<% } %>`;
   if (field.type === 'object' && field.children.length === 0) {
     return '{}';
   }
   if (field.type === 'array' && (field.childType || field.children.length === 0)) {
     return '[]';
   }
-  return template.render(tpl, { data: field, options });
+  return template.render(tpl, { field, options });
 };
 
 export interface GenerateApiTplOptions {
@@ -33,6 +30,23 @@ export interface GenerateApiTplOptions {
   cancelSameRequest: boolean
   headText: string
   tpl: ''
+}
+
+export interface GenerateReqRespTplOptions {
+  // 所选模板
+  tpl: string
+  // 所选接口
+  api: string
+  // 是否生成CRUD
+  crud: false,
+  // 是否使用格栅布局
+  grid: false,
+  // 输入框属性
+  maxlength: number,
+  // 输入框是否生成placeholder
+  placeholder: false,
+  // 表单是否生成label
+  generateLabel: false,
 }
 
 // 表格模板
@@ -149,7 +163,7 @@ export default {
 };
 
 // 实体类模板
-export const generateEntityTpl = (data: Array<FieldInterface> = [], options: {grid: boolean}) => {
+export const generateEntityTpl = (requests: Array<FieldInterface> = [], options: {grid: boolean}) => {
   // @ts-ignore
   options = merge({
     grid: false,
@@ -166,13 +180,13 @@ export const generateEntityTpl = (data: Array<FieldInterface> = [], options: {gr
     ref="form"
     label-width="80px"
     class="crud-entity"
-  >{{if data.length > 0}}{{if options.grid}}\n    <el-row :gutter="30">{{/if}}{{if data[0]}}
-    {{if options.grid}}  <el-col :span="span">\n        {{/if}}<el-form-item label="{{if data[0].label}}{{data[0].label}}{{else}}{{data[0].key}}{{/if}}" prop="{{data[0].key}}">
-      {{if options.grid}}    {{/if}}<NrSelect v-model="entity.{{data[0].key}}" :options="options.{{data[0].key}}"{{if options.placeholder}} placeholder="请选择{{if data[0].label}}{{data[0].label}}{{/if}}"{{/if}} />
-    {{if options.grid}}    {{/if}}</el-form-item>{{if options.grid}}\n      </el-col>{{/if}}{{/if}}{{each data.slice(1)}}{{if options.grid}}\n      <el-col :span="span">\n        {{else}}\n    {{/if}}<el-form-item label="{{if $value.label}}{{$value.label}}{{else}}{{$value.key}}{{/if}}" prop="{{$value.key}}">
+  >{{if requests.length > 0}}{{if options.grid}}\n    <el-row :gutter="30">{{/if}}{{if requests[0]}}
+    {{if options.grid}}  <el-col :span="span">\n        {{/if}}<el-form-item label="{{if requests[0].label}}{{requests[0].label}}{{else}}{{requests[0].key}}{{/if}}" prop="{{requests[0].key}}">
+      {{if options.grid}}    {{/if}}<NrSelect v-model="entity.{{requests[0].key}}" :options="options.{{requests[0].key}}"{{if options.placeholder}} placeholder="请选择{{if requests[0].label}}{{requests[0].label}}{{/if}}"{{/if}} />
+    {{if options.grid}}    {{/if}}</el-form-item>{{if options.grid}}\n      </el-col>{{/if}}{{/if}}{{each requests.slice(1)}}{{if options.grid}}\n      <el-col :span="span">\n        {{else}}\n    {{/if}}<el-form-item label="{{if $value.label}}{{$value.label}}{{else}}{{$value.key}}{{/if}}" prop="{{$value.key}}">
       {{if options.grid}}    {{/if}}<el-input v-model="entity.{{$value.key}}"{{if options.placeholder}} placeholder="请输入{{if $value.label}}{{$value.label}}{{/if}}"{{/if}}{{if options.maxlength}} maxlength="{{options.maxlength}}"{{/if}} clearable />
     {{if options.grid}}    {{/if}}</el-form-item>{{if options.grid}}\n      </el-col>{{/if}}{{/each}}{{if options.grid}}\n    </el-row>{{/if}}
-  {{/if}}{{if data.length === 0}}\n    <!-- 没有可以生成的字段 -->\n  {{/if}}</el-form>
+  {{/if}}{{if requests.length === 0}}\n    <!-- 没有可以生成的字段 -->\n  {{/if}}</el-form>
 </template>
 
 <script>
@@ -185,16 +199,16 @@ export default {
     return {<% if (options.grid) { %>
       span: 8,<% } %>
       loadingOptions: false,
-      entity: {{if data.length === 0}}{},{{else}}{
-        {{each data}}{{if $value.label || $value.typeValue}}// {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n        {{/if}}{{$value.key}}: {{$value.defaultValue}}{{if $index !== data.length - 1}},\n        {{/if}}{{/each}}
+      entity: {{if requests.length === 0}}{},{{else}}{
+        {{each requests}}{{if $value.label || $value.typeValue}}// {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n        {{/if}}{{$value.key}}: {{$value.defaultValue}}{{if $index !== requests.length - 1}},\n        {{/if}}{{/each}}
       },{{/if}}
       // 在CRUD中传值的对象
       entityComponentProps: {},
-      options: {{if data.length === 0}}{},{{else}}{<% if (data[0].label) { %>\n        // {{data[0].label}}<% } %>
-        {{data[0].key}}: [{ name: '测试选项1', value: '100' }]
+      options: {{if requests.length === 0}}{},{{else}}{<% if (requests[0].label) { %>\n        // {{requests[0].label}}<% } %>
+        {{requests[0].key}}: [{ name: '测试选项1', value: '100' }]
       },{{/if}}
       rules: {{if requiredFieldList.length === 0}}{},{{else}}{
-        {{requiredFieldList[0].key}}: [{{if data[0].label}} // {{data[0].label}}{{/if}}
+        {{requiredFieldList[0].key}}: [{{if requests[0].label}} // {{requests[0].label}}{{/if}}
           { required: true, message: '必选项', trigger: 'change' }
         ],{{each requiredFieldList.slice(1)}}\n        {{$value.key}}: [{{if $value.label}} // {{$value.label}}{{/if}}
           { required: true, message: '必填项', trigger: 'blur' }
@@ -240,14 +254,14 @@ export default {
 
 </style>
 `;
-  const requiredFieldList = data.filter((t) => t.required);
-  return template.render(tpl, { data, requiredFieldList, options });
+  const requiredFieldList = requests.filter((t) => t.required);
+  return template.render(tpl, { requests, requiredFieldList, options });
 };
 
 // 实体类字段
 export const generateEntityField = (fieldList: Array<FieldInterface>, options = {}) => {
-  const tpl = `<% if (data.length > 0) { %>{
-{{each data}}{{if $value.label || $value.typeValue}}  // {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n{{/if}}  {{$value.key}}: {{if $value.type === 'object' || $value.type === 'array'}}<%= $imports.generateEntityField($value, options, 1) %>{{else if $value.type !== 'object' || $value.type !== 'array'}}{{$value.defaultValue}}{{else}}null{{/if}}{{if $index < data.length-1}},\n{{/if}}{{/each}}
+  const tpl = `<% if (fieldList.length > 0) { %>{
+{{each fieldList}}{{if $value.label || $value.typeValue}}  // {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n{{/if}}  {{$value.key}}: {{if $value.type === 'object' || $value.type === 'array'}}<%= $imports.generateEntityField($value, options, 1) %>{{else if $value.type !== 'object' || $value.type !== 'array'}}{{$value.defaultValue}}{{else}}null{{/if}}{{if $index < fieldList.length-1}},\n{{/if}}{{/each}}
 }<% } %>`;
-  return template.render(tpl, { data: fieldList, options });
+  return template.render(tpl, { fieldList, options });
 };

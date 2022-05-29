@@ -7,10 +7,17 @@ const COMMON_HEAD = `
  */
 function renderTpl (apiList, options) {
   const result = [];
-  options = Object.prototype.toString.call(options) === '[object Object]' ? options : {};
+  options = lodash.merge({
+    baseURL: '',
+    baseURLType: 1,
+    onlyApi: false,
+    cancelSameRequest: true
+  }, lodash.isPlainObject(options) ? options : {});
 `;
-export const DEFAULT_API_TPL1 =
-  COMMON_HEAD + `
+
+/**------------------------------  API方法模板--开始  ------------------------------**/
+export const API_TPL1000 =
+COMMON_HEAD + `
   const tpl1 = \`{{if !options.onlyApi}}{{if options.headText}}{{options.headText}}\n\n{{/if}}{{/if}}{{each apiList}}{{if $value.label}}// {{$value.label}}{{/if}}
 export function {{$value.methodName}}(data) {
   return request({<% if (options.cancelSameRequest) { %>
@@ -32,6 +39,7 @@ export function {{$value.methodName}}(data) {
   return result;
 };
 `;
+/**------------------------------  API方法模板--结束  ------------------------------**/
 
 export const API_TPL_DEMO1 = COMMON_HEAD + `
   const tpl1 = \`

@@ -2,7 +2,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { Effect, ImmerReducer, Reducer, Subscription } from 'umi';
 import { Project, ProjectInterface } from '@/core/types';
 import { cloneDeep, findIndex } from 'lodash';
-import { DEFAULT_API_TPL1 } from '@/constants/tpl/api';
+import { API_TPL1000 } from '@/constants/tpl/api';
+import { REQ_RESP_TPL2000, REQ_RESP_TPL2100, REQ_RESP_TPL6000 } from '@/constants/tpl/req-resp';
 import { message } from 'antd';
 import { checkType } from '@/utils';
 
@@ -12,13 +13,13 @@ export class Tpl {
   uid = uuidv4()
   // 模板名称
   name = ''
-  // 模板类型(-1 代表系统内置, > -1 代表自定义)
-  type = 0
+  // 模板类型(小于0: 代表系统内置 , 大于0: 代表自定义)
+  type = 1
   // 模板内容
   value = ''
   // 默认模板
   isDefault = false
-  constructor(name = '', value = '', type = 0, isDefault = false, uid = uuidv4()) {
+  constructor(name = '', value = '', type = 1, isDefault = false, uid = uuidv4()) {
     this.name = name;
     this.value = value;
     this.type = type;
@@ -30,6 +31,7 @@ export class Tpl {
 export interface TplModelState {
   // API方法相关的模板
   api: Array<Tpl>
+  reqResp: Array<Tpl>
 }
 
 export interface TplModelType {
@@ -49,8 +51,14 @@ const TplModel: TplModelType = {
 
   state: {
     api: [
-      new Tpl('内置API模板', DEFAULT_API_TPL1, -1),
+      new Tpl('内置(API模板)', API_TPL1000, -1, true, 'API_TPL1000'),
     ],
+    reqResp: [
+      new Tpl('内置(Vue-表格模板)', REQ_RESP_TPL2000, -1, true, 'REQ_RESP_TPL2000'),
+      new Tpl('内置(Vue-实体类模板)', REQ_RESP_TPL2100, -1, false, 'REQ_RESP_TPL2100'),
+
+      new Tpl('内置(请求参数&响应参数)', REQ_RESP_TPL6000, -1, false, 'REQ_RESP_TPL6000'),
+    ]
   },
 
   reducers: {

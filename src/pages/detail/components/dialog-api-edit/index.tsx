@@ -12,7 +12,7 @@ import { generateTpl } from '@/core';
 import CodeBox from '@/components/code-box';
 import { getInitApiTplMockData } from '@/constants/tpl/api';
 
-interface DialogTplEditProps extends ConnectProps {
+interface DialogApiEditProps extends ConnectProps {
   tplEntity: Tpl
   visible: boolean
   options: {
@@ -22,7 +22,7 @@ interface DialogTplEditProps extends ConnectProps {
   onDelete?(entity: Tpl): void
   onChangeVisible(v: boolean, isDelete?: boolean): void
 }
-const DialogTplEdit: FC<DialogTplEditProps> = ({visible, options, tplEntity, onAdd, onDelete, onChangeVisible, dispatch}) => {
+const DialogApiEdit: FC<DialogApiEditProps> = ({visible, options, tplEntity, onAdd, onDelete, onChangeVisible, dispatch}) => {
   const [formRef] = Form.useForm();
   const [tplCodeList, setTplCodeList] = useState<Array<string>>([]);
   const [entity, setEntity] = useState<Tpl>(new Tpl());
@@ -101,7 +101,7 @@ const DialogTplEdit: FC<DialogTplEditProps> = ({visible, options, tplEntity, onA
               >
                 <Input value={entity.name} onChange={(e) => setEntity({...entity, name: e.target.value})} placeholder="模板名称" />
               </Form.Item>
-              { entity.uid && entity.type !== -1 &&
+              { entity.uid && entity.type > -1 &&
               <Popconfirm
                 title="确定要删除该模板?"
                 onConfirm={handleDel}
@@ -144,4 +144,4 @@ const DialogTplEdit: FC<DialogTplEditProps> = ({visible, options, tplEntity, onA
   )
 };
 
-export default connect((state: IndexModelState) => ({}))(DialogTplEdit);
+export default connect((state: IndexModelState) => ({}))(DialogApiEdit);
