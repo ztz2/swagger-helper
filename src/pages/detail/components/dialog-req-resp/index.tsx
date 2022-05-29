@@ -284,7 +284,13 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
                   <Form.Item name="api" label="选择API" rules={[{ required: true, message: '必选项' }]}>
                     <Select allowClear>
                       {items.map((t: ApiInterface) => (
-                        <Option value={t.uid}>{t.label}</Option>
+                        <Option value={t.uid}>
+                          <Space>
+                            <span>{t.label}</span>
+                            <span>{t.method}</span>
+                            <span>{t.url}</span>
+                          </Space>
+                        </Option>
                       ))}
                     </Select>
                   </Form.Item>
