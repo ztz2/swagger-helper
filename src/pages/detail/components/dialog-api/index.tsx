@@ -36,7 +36,7 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
   const [options, setOptions] = useState<GenerateApiTplOptions>({
     baseURL: '',
     onlyApi: false,
-    cancelSameRequest: true,
+    cancelSameRequest: false,
     headText: '',
     tpl: '',
   });
@@ -185,6 +185,12 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
                 </Select>
               </Form.Item>
               <Form.Item name="onlyApi" label="只生成API">
+                <Radio.Group>
+                  <Radio value={true}>是</Radio>
+                  <Radio value={false}>否</Radio>
+                </Radio.Group>
+              </Form.Item>
+              <Form.Item name="cancelSameRequest" label="取消重复请求">
                 <Radio.Group>
                   <Radio value={true}>是</Radio>
                   <Radio value={false}>否</Radio>
