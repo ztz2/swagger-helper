@@ -1,11 +1,10 @@
 import React, { FC, useState } from 'react';
 import { IndexModelState, ConnectProps, Loading, connect, Link } from 'umi';
-import { Form, Input, Modal, Space, Table, Button, message, Popconfirm } from 'antd';
+import { Alert, Form, Input, Modal, Space, Table, Button, message, Popconfirm } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { merge } from 'lodash';
 import { Project } from '@/core/types';
 import { swaggerParser } from '@/core';
-
 
 interface HomePageProps extends ConnectProps {
   swagger: IndexModelState
@@ -75,71 +74,74 @@ const HomePage: FC<HomePageProps> = ({swagger, dispatch}) => {
   }
 
   return(
-    <div style={{padding: '20px 24px'}}>
-      <div style={{marginBottom: '10px'}}>
-        <Space>
-          <Button type="primary" onClick={() => setVisibleAdd(true)}>添加</Button>
-          {/*<Button type="primary">导入内部接口数据</Button>*/}
-          <Button type="primary" disabled={swagger.list.length === 0} onClick={() => handleDeleteAll()} danger>全部删除</Button>
-        </Space>
-      </div>
+    <div style={{ padding: '20px 24px'}}>
+      <div style={{flexGrow: 1}}>
+        <div style={{marginBottom: '10px'}}>
+          <Space>
+            <Button type="primary" onClick={() => setVisibleAdd(true)}>添加</Button>
+            {/*<Button type="primary">导入内部接口数据</Button>*/}
+            <Button type="primary" disabled={swagger.list.length === 0} onClick={() => handleDeleteAll()} danger>全部删除</Button>
+            <Alert style={{marginLeft: 20}} message="支持对Swagger Petstore - OpenAPI 2.0 以及 3.0 版本的模板生成" type="info" closable />
+          </Space>
+        </div>
 
-      <Table columns={columns} dataSource={swagger.list} />
+        <Table columns={columns} dataSource={swagger.list} />
 
-      {/*添加功能模态框 -- 开始*/}
-      <Modal
-        title="添加"
-        okText="确定"
-        cancelText="取消"
-        visible={visibleAdd}
-        onOk={handleSubmit}
-        confirmLoading={loadingAdd}
-        onCancel={() => setVisibleAdd(false)}
-      >
-        <Form
-          name="basic"
-          form={addFormRef}
-          labelCol={{ span: 6 }}
-          wrapperCol={{ span: 18 }}
-          autoComplete="off"
+        {/*添加功能模态框 -- 开始*/}
+        <Modal
+          title="添加"
+          okText="确定"
+          cancelText="取消"
+          visible={visibleAdd}
+          onOk={handleSubmit}
+          confirmLoading={loadingAdd}
+          onCancel={() => setVisibleAdd(false)}
         >
-          <Form.Item
-            label="项目名称"
-            name="label"
-            initialValue=""
-            rules={[{ required: true, message: '必填项!' }]}
+          <Form
+            name="basic"
+            form={addFormRef}
+            labelCol={{ span: 6 }}
+            wrapperCol={{ span: 18 }}
+            autoComplete="off"
           >
-            <Input />
-          </Form.Item>
+            <Form.Item
+              label="项目名称"
+              name="label"
+              initialValue=""
+              rules={[{ required: true, message: '必填项!' }]}
+            >
+              <Input />
+            </Form.Item>
 
-          <Form.Item
-            label="配置URL地址"
-            tooltip="打开Swagger文档，按F12打开控制台->网络，查看AJAX请求，例子：https://xxx.com/xxx/v2/api-docs"
-            name="url"
-            initialValue=""
-            rules={[{ required: true, message: '必填项!' }]}
-          >
-            <Input />
-          </Form.Item>
+            <Form.Item
+              label="配置URL地址"
+              tooltip="打开Swagger文档，按F12打开控制台->网络，查看AJAX请求，例子：https://xxx.com/xxx/v2/api-docs"
+              name="url"
+              initialValue=""
+              rules={[{ required: true, message: '必填项!' }]}
+            >
+              <Input />
+            </Form.Item>
 
-          <Form.Item
-            label="用户名"
-            name="username"
-            initialValue=""
-          >
-            <Input />
-          </Form.Item>
+            <Form.Item
+              label="用户名"
+              name="username"
+              initialValue=""
+            >
+              <Input />
+            </Form.Item>
 
-          <Form.Item
-            label="密码"
-            name="password"
-            initialValue=""
-          >
-            <Input />
-          </Form.Item>
-        </Form>
-      </Modal>
-      {/*添加功能模态框 -- 结束*/}
+            <Form.Item
+              label="密码"
+              name="password"
+              initialValue=""
+            >
+              <Input />
+            </Form.Item>
+          </Form>
+        </Modal>
+        {/*添加功能模态框 -- 结束*/}
+      </div>
     </div>
   )
 };

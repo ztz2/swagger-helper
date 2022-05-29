@@ -38,6 +38,7 @@
   .layoutRight{
     flex-grow: 1;
     overflow: auto;
+    position: relative;
     .layoutRightTop{
       width: 100%;
       box-shadow: 0 1px 4px rgb(0 21 41 / 8%);
