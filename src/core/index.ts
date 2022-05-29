@@ -316,7 +316,7 @@ export const generateTpl = function(tpl: string, ...params: Array<any>) {
   try {
     const lodash = _;
     const exe = { renderTpl: null };
-    eval(tpl + `exe.renderTpl = typeof renderTpl === 'function' ? renderTpl : null`);
+    eval(tpl + `\nexe.renderTpl = typeof renderTpl === 'function' ? renderTpl : null`);
     if (typeof exe.renderTpl !== 'function') {
       throw Error('模板中缺少 renderTpl 函数');
     }

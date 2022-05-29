@@ -1,16 +1,56 @@
 import { cloneDeep } from 'lodash';
-import { ApiInterface } from '@/core/types';
 
-const COMMON_HEAD = ``;
+const COMMON_HEAD = `
 
-/**------------------------------  Vue-表格模板--开始  ------------------------------**/
-export const REQ_RESP_TPL2000 =
-COMMON_HEAD + `
 /**
- * @param apiList
- * @param options
+// 请求数据&响应数据中的字段
+export interface FieldInterface {
+  // 字段
+  key: string
+  // label
+  label: string
+  // 字段类型
+  type: string
+  // 类型值
+  typeValue: string
+  // 它的子集字段【当该字段为Object或者Array<object>】
+  children: Array<FieldInterface>
+  // 它的子集为基本数据类型时候的值
+  childType: string | null
+  // 字段描述
+  description?: string
+  // 是否必填字段
+  required: boolean
+  // 例子
+  example: string
+  // 默认值
+  defaultValue: any
+  // 唯一ID
+  uid: string
+  // 父节点
+  parentUid: string | null
+}
+// 可选的配置项
+type Options = {
+  // 是否生成CURD功能
+  crud: boolean
+  // 是否使用格栅布局
+  grid: boolean
+  // 输入框的 maxlength 属性
+  maxlength: number
+  // 是否生成输入框的 placeholder 属性
+  placeholder: boolean
+  // 表单是否生成label
+  generateLabel: boolean
+}
+ * @param requests { Array<FieldInterface> } 请求数据字段集合
+ * @param responses { Array<FieldInterface> } 响应数据字段集合
+ * @param options { Options } 可选的配置项
+ * @return [] { Array<string> } 返回数组，里面每一项字符串都是一个模板
  */
 function renderTpl (requests, responses, options) {
+   // 模板引擎基于 art-template 使用，template 变量就是对art-template的引用，更多语法方法参考官方文档：https://github.com/aui/art-template
+  // 函数中可以使用Lodash工具包所有功能，比如 cloneDeep，使用方式：lodash.cloneDeep
   const result = [];
   options = lodash.merge({
     crud: false,
@@ -19,7 +59,11 @@ function renderTpl (requests, responses, options) {
     placeholder: false,
     generateLabel: false
   }, lodash.isPlainObject(options) ? options : {});
+`;
 
+/**------------------------------  Vue-表格模板--开始  ------------------------------**/
+export const REQ_RESP_TPL2000 =
+COMMON_HEAD + `
   const tpl = \`<template>
   <div class="app-container">
     <NrTable
@@ -131,14 +175,6 @@ export default {
 /**------------------------------  Vue-实体类模板--开始  ------------------------------**/
 export const REQ_RESP_TPL2100 =
 COMMON_HEAD + `
-function renderTpl (requests, options) {
-  const result = [];
-  options = lodash.merge({
-    grid: false,
-    maxlength: 100,
-    placeholder: false,
-  }, lodash.isPlainObject(options) ? options : {});
-
   const tpl = \`<template>
   <el-form
     :rules="rules"
@@ -235,11 +271,7 @@ export default {
 /**------------------------------  请求参数&响应参数--开始  ------------------------------**/
 export const REQ_RESP_TPL6000 =
   COMMON_HEAD + `
-function renderTpl (requests, responses, options) {
-  const result = [];
-  options = lodash.merge({}, lodash.isPlainObject(options) ? options : {});
-
-  function renderFields (fieldList, options) {
+function renderFields (fieldList, options) {
     if (fieldList.length === 0) {
       return '';
     }
@@ -276,14 +308,26 @@ function renderTpl (requests, responses, options) {
 `;
 /**------------------------------  请求参数&响应参数--结束  ------------------------------**/
 
-export const API_TPL_DEMO1 = COMMON_HEAD + `
-  const tpl1 = \`
-// 模板2
-  \`
-  result.push(template.render(tpl1, { apiList, options }));
+export const REQ_RESP_TPL_DEMO1 = COMMON_HEAD + `
+  const tpl1 =
+\`生成模板例子，这里获取请求数据和响应数据的字段，根据这些字段，可以生成想要的任何模板代码
+
+{{if requests.length > 0}}
+请求数据字段：{{each requests}}
+   {{$value.key}}({{$value.label}}){{/each}}
+{{/if}}
+{{if responses.length > 0}}
+响应数据字段：{{each responses}}
+   {{$value.key}}({{$value.label}}){{/each}}
+{{/if}}
+\`;
+  // 当一个模板定义好之后，使用 template.render 方法进行生成，并添加到result返回数组中
+  // 当然可以生成多个模板，每次生成好之后，添加到result数组中即可
+  result.push(template.render(tpl1, { requests, responses, options }));
+
+  // 返回生成好的模板
   return result;
 };
 `;
 
 export const getMockApiData: any = () => cloneDeep({"uid":"be235f91-eec1-42fb-9df0-d1871e88b906","parentUid":"8f0f42e5-ac1b-489f-b33c-6f225e42bfab","method":"post","methodName":"postSubmit","requests":[{"key":"submitToken","label":"登录确认令牌","type":"string","typeValue":"string","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":"''","uid":"b1cceea0-e91c-491e-84d5-6543f504800d","parentUid":null,"_options":{"disableCheckbox":false}},{"key":"tenantId","label":"登录机构ID","type":"number","typeValue":"number","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":null,"uid":"3fc8adef-a08a-4d61-85c2-f6f95d481cb7","parentUid":null,"_options":{"disableCheckbox":false}}],"requestContentType":"application/json","responses":[{"key":"code","label":"状态码","type":"number","typeValue":"number","children":[],"childType":"","description":"","required":true,"example":"","defaultValue":null,"uid":"d9d1565d-d9c6-47c2-9f02-3b4d43eb3512","parentUid":null,"_options":{"disableCheckbox":false}},{"key":"data","label":"业务数据","type":"object","typeValue":"Object","children":[{"key":"accessToken","label":"授权令牌","type":"string","typeValue":"string","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":"''","uid":"65d45dbd-c79c-4439-8a1d-53fff2a1923c","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}},{"key":"currentTenant","label":"当前登录机构ID","type":"number","typeValue":"number","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":null,"uid":"88a3544f-a9f3-4717-a4fe-cb262ba314bb","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}},{"key":"nickName","label":"账户昵称","type":"string","typeValue":"string","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":"''","uid":"adf3c645-35c9-40fe-8e98-a073239b4f8f","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}},{"key":"permissions","label":"权限集合,登录成功返回","type":"array","typeValue":"Array<string>","children":[],"childType":"string","description":"","required":false,"example":"","defaultValue":"[]","uid":"d597856b-b450-45b0-a515-e5845b9b26a9","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}},{"key":"submitToken","label":"登录确认令牌，若存在多机构不直接返回accessToken，通过SubmitToken确认登录机构","type":"string","typeValue":"string","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":"''","uid":"94da4b98-0107-49b8-8184-e5eb2d7f93eb","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}},{"key":"tenants","label":"账户关联机构","type":"array","typeValue":"Array<Object>","children":[{"key":"id","type":"number","typeValue":"number","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":null,"uid":"2cc2d669-51a5-4794-8826-b3f7e4351499","parentUid":"41d61152-85e6-40d5-b0c1-b991b9270fc6","_options":{"disableCheckbox":false}},{"key":"lastLoginTime","type":"string","typeValue":"string","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":"''","uid":"0099ed3d-bf58-48cf-a386-55f7fdc2c9ea","parentUid":"41d61152-85e6-40d5-b0c1-b991b9270fc6","_options":{"disableCheckbox":false}},{"key":"tenantCode","type":"string","typeValue":"string","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":"''","uid":"f532552a-489c-4350-806e-a8c3113b18e6","parentUid":"41d61152-85e6-40d5-b0c1-b991b9270fc6","_options":{"disableCheckbox":false}},{"key":"tenantName","type":"string","typeValue":"string","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":"''","uid":"e8fbb381-baca-4fb0-aa8e-bf7013b43ce2","parentUid":"41d61152-85e6-40d5-b0c1-b991b9270fc6","_options":{"disableCheckbox":false}}],"childType":"","description":"","required":false,"example":"","defaultValue":"[]","uid":"41d61152-85e6-40d5-b0c1-b991b9270fc6","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}},{"key":"type","label":"登录类型，1：账号密码，2：短信验证码","type":"number","typeValue":"number","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":1,"uid":"b27d11bd-036a-4694-b7f2-cefc6b2f7a00","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}},{"key":"userId","label":"账户ID","type":"number","typeValue":"number","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":null,"uid":"0f0ad715-6c62-4b7f-9616-ac61025adddb","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}},{"key":"userType","label":"账户类型，0：管理用户，1：机构用户","type":"number","typeValue":"number","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":0,"uid":"0128697d-094c-42b5-a79c-8955eeb3b461","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}},{"key":"username","label":"账户名","type":"string","typeValue":"string","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":"''","uid":"2dfdbbcb-9083-496d-b580-5d377e5bc28d","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}}],"childType":"","description":"","required":false,"example":"","defaultValue":"{}","uid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","parentUid":null,"_options":{"disableCheckbox":false}},{"key":"msg","label":"消息内容","type":"string","typeValue":"string","children":[],"childType":"","description":"","required":true,"example":"","defaultValue":"''","uid":"1c6f0459-460e-47bf-aa68-1c90a5014e93","parentUid":null,"_options":{"disableCheckbox":false}},{"key":"success","type":"boolean","typeValue":"boolean","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":false,"uid":"ff0494ec-8c8a-49ba-96ea-54e4cb042b23","parentUid":null,"_options":{"disableCheckbox":false}},{"key":"time","label":"时间戳","type":"number","typeValue":"number","children":[],"childType":"","description":"","required":true,"example":"","defaultValue":null,"uid":"170d1998-722c-4ccf-8680-3c9721709fcf","parentUid":null,"_options":{"disableCheckbox":false}}],"label":"登录确认","url":"/token/tenant/submit","methodUrl":"/token/tenant/submit","_options":{"active":false}});
-

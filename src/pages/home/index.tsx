@@ -79,7 +79,7 @@ const HomePage: FC<HomePageProps> = ({swagger, dispatch}) => {
       <div style={{marginBottom: '10px'}}>
         <Space>
           <Button type="primary" onClick={() => setVisibleAdd(true)}>添加</Button>
-          <Button type="primary">导入内部接口数据</Button>
+          {/*<Button type="primary">导入内部接口数据</Button>*/}
           <Button type="primary" disabled={swagger.list.length === 0} onClick={() => handleDeleteAll()} danger>全部删除</Button>
         </Space>
       </div>

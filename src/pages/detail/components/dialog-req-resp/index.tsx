@@ -6,7 +6,7 @@ import { cloneDeep, find, pick } from 'lodash';
 
 import { Tpl, generateTpl, processFieldTree } from '@/core';
 import CodeBox from '@/components/code-box';
-import { API_TPL_DEMO1 } from '@/constants/tpl/api';
+import { REQ_RESP_TPL_DEMO1 } from '@/constants/tpl/req-resp';
 import { ApiInterface, FieldInterface, Project } from '@/core/types';
 import { GenerateReqRespTplOptions } from '@/core/template';
 import DialogReqRespEdit from '@/pages/detail/components/dialog-req-resp-edit';
@@ -163,7 +163,7 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
   const handleAdd = () => {
     const entity = new Tpl();
     entity.uid = '';
-    entity.value = API_TPL_DEMO1;
+    entity.value = REQ_RESP_TPL_DEMO1;
     setEditTpl(entity);
     setVisibleDialogTplEdit(true);
   };
@@ -173,7 +173,6 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
     if (!tplEntity) {
       return
     }
-
     setOptions({...values});
     dispatch?.({type: 'swagger/update', payload: { project, data: pick(values, UPDATE_FIELDS)}});
     setTplCodeList(generateTpl(tplEntity.value, processFieldTree(reqTree, reqCheckedNodes), processFieldTree(respTree, respCheckedNodes), values));

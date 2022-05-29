@@ -26,9 +26,6 @@ export interface FieldInterface {
   uid: string
   // 父节点
   parentUid: string | null
-  _options: {
-    disableCheckbox: boolean
-  }
 }
 export class Field implements FieldInterface {
   key = ''
@@ -50,20 +47,28 @@ export class Field implements FieldInterface {
 
 // API
 export interface ApiInterface {
-  uid: string
-  parentUid: string
-  method: string
-  methodName: string
-  requestContentType: string
-  requests: Array<FieldInterface>
-  responses: Array<FieldInterface>
+  // 接口名称
   label: string,
+  // 接口地址
   url: string
+  // 生成的接口地址
   methodUrl: string
-  _options: {
-    active: boolean
-  }
+  // 唯一的UID
+  uid: string
+  // 父节点UID
+  parentUid: string
+  // 接口请求方法
+  method: string
+  // 生成的接口请求方法名称
+  methodName: string
+  // 请求数据类型
+  requestContentType: string
+  // 请求数据字段集合
+  requests: Array<FieldInterface>
+  // 响应数据字段集合
+  responses: Array<FieldInterface>
 }
+
 export class Api implements ApiInterface {
   uid = ''
   parentUid = ''
@@ -75,9 +80,6 @@ export class Api implements ApiInterface {
   label = ''
   url = ''
   methodUrl = ''
-  _options = {
-    active: false
-  }
 }
 
 // 模块
@@ -86,18 +88,12 @@ export interface ProjectModuleInterface {
   label: string
   description: string
   apiList: Array<ApiInterface>
-  _options: {
-    active: boolean
-  }
 }
 export class ProjectModule implements ProjectModuleInterface {
   uid = ''
   label = ''
   description = ''
   apiList = []
-  _options = {
-    active: false
-  }
   constructor(label = '') {
     this.uid = uuidv4();
     this.label = label;
