@@ -312,7 +312,10 @@ export const swaggerParser = async (param: Project, showErrorMsg = true) => {
 
 export const generateTpl = function(tpl: string, ...params: Array<any>) {
   let result: Array<string> = [];
-
+  const success = params[params.length - 1];
+  if (typeof success === 'function') {
+    params.pop();
+  }
   try {
     const lodash = _;
     const exe = { renderTpl: null };
@@ -329,6 +332,9 @@ export const generateTpl = function(tpl: string, ...params: Array<any>) {
       result = ['没有可以生成的模板']
     } else if (typeof result[0] !== 'string') {
       throw Error('renderTpl 函数返回值数据类型为： Array<string>');
+    }
+    if (typeof success === 'function') {
+      success?.();
     }
   } catch (e: any) {
     if (typeof e === 'string') {

@@ -172,6 +172,47 @@ export default {
 `;
 /**------------------------------  Vue-表格模板--开始  ------------------------------**/
 
+/**------------------------------  Vue-表格模板[element-ui表格]--开始  ------------------------------**/
+export const REQ_RESP_TPL2001 =
+  COMMON_HEAD + `
+  const tpl =
+\` <template>
+    <el-table
+      :data="tableData"
+      style="width: 100%">
+      <el-table-column
+        type="selection"
+        width="55">
+      </el-table-column>{{each responses}}
+      <el-table-column
+        prop="{{$value.key}}"
+        label="{{$value.label}}"
+        width="180">
+      </el-table-column>{{/each}}
+    </el-table>
+  </template>
+
+  <script>
+    export default {
+      data() {
+        return {
+          tableData: [{
+            {{each responses}}{{if $index > 0}}            {{/if}}{{$value.key}}: '模拟数据：{{$index}}'{{if $index < responses.length - 1}},\n{{/if}}{{/each}}
+          }]
+        }
+      }
+    }
+  </script>
+\`;
+  const requiredFieldList = requests.filter((t) => t.required);
+
+  result.push(template.render(tpl, { responses, requiredFieldList, options }))
+
+  return result;
+};
+`;
+/**------------------------------  Vue-表格模板[element-ui表格]--结束  ------------------------------**/
+
 /**------------------------------  Vue-实体类模板--开始  ------------------------------**/
 export const REQ_RESP_TPL2100 =
 COMMON_HEAD + `
@@ -266,7 +307,44 @@ export default {
   return result;
 };
 `;
-/**------------------------------  请求参数&响应参数--结束  ------------------------------**/
+/**------------------------------  Vue-实体类模板--结束  ------------------------------**/
+
+/**------------------------------  Vue-实体类模板[element-ui表单]--开始  ------------------------------**/
+export const REQ_RESP_TPL2101 =
+  COMMON_HEAD + `
+  const tpl =
+\`<el-form ref="form" :model="form" label-width="80px">{{if requests.length > 0}}{{if options.grid}}\n    <el-row :gutter="30">{{/if}}{{if requests[0]}}
+    {{if options.grid}}  <el-col :span="span">\n        {{/if}}<el-form-item label="{{if requests[0].label}}{{requests[0].label}}{{else}}{{requests[0].key}}{{/if}}" prop="{{requests[0].key}}">
+      {{if options.grid}}    {{/if}}<el-input v-model="entity.{{requests[0].key}}" {{if options.placeholder}} placeholder="请输入{{if requests[0].label}}{{requests[0].label}}{{/if}}"{{/if}} />
+    {{if options.grid}}    {{/if}}</el-form-item>{{if options.grid}}\n      </el-col>{{/if}}{{/if}}{{each requests.slice(1)}}{{if options.grid}}\n      <el-col :span="span">\n        {{else}}\n    {{/if}}<el-form-item label="{{if $value.label}}{{$value.label}}{{else}}{{$value.key}}{{/if}}" prop="{{$value.key}}">
+      {{if options.grid}}    {{/if}}<el-input v-model="entity.{{$value.key}}"{{if options.placeholder}} placeholder="请输入{{if $value.label}}{{$value.label}}{{/if}}"{{/if}}{{if options.maxlength}} maxlength="{{options.maxlength}}"{{/if}} clearable />
+    {{if options.grid}}    {{/if}}</el-form-item>{{if options.grid}}\n      </el-col>{{/if}}{{/each}}{{if options.grid}}\n    </el-row>{{/if}}
+{{/if}}{{if requests.length === 0}}\n    <!-- 没有可以生成的字段 -->\n  {{/if}}</el-form>
+<script>
+  export default {
+    data() {
+      return {
+        form: {{if requests.length === 0}}{},{{else}}{
+            {{each requests}}{{if $value.label || $value.typeValue}}{{if $index > 0}}   {{/if}}// {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n           {{/if}}{{$value.key}}: {{$value.defaultValue}}{{if $index !== requests.length - 1}},\n        {{/if}}{{/each}}
+        },{{/if}}
+      }
+    },
+    methods: {
+      onSubmit() {
+        console.log('submit!');
+      }
+    }
+  }
+</script>
+\`;
+  const requiredFieldList = requests.filter((t) => t.required);
+
+  result.push(template.render(tpl, { requests, requiredFieldList, options }))
+
+  return result;
+};
+`;
+/**------------------------------  Vue-实体类模板[element-ui表单]--结束  ------------------------------**/
 
 /**------------------------------  请求参数&响应参数--开始  ------------------------------**/
 export const REQ_RESP_TPL6000 =

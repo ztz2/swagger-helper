@@ -82,10 +82,11 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
     }
     setOptions({...values});
     dispatch?.({type: 'swagger/update', payload: { project, data: pick(values, UPDATE_FIELDS)}});
-    setTplCodeList(generateTpl(tplEntity.value, items, values));
-    if (!isDefaultAction) {
-      message.success('已生成');
-    }
+    setTplCodeList(generateTpl(tplEntity.value, items, values, () => {
+      if (!isDefaultAction) {
+        message.success('已生成');
+      }
+    }));
   };
 
   const handleDel = (entity: Tpl) => {
