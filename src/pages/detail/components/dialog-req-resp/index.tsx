@@ -288,8 +288,8 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
                         <Option value={t.uid}>
                           <Space>
                             <span>【{t.method.toUpperCase()}】</span>
-                            <span>{t.label}</span>
                             <span>{t.url}</span>
+                            <span>{t.label}</span>
                           </Space>
                         </Option>
                       ))}
