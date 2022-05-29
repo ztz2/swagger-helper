@@ -19,6 +19,15 @@ textarea.ant-input{
 .white-space-nowrap{
   white-space: nowrap;
 }
+.ant-form-item-control{
+  position: relative;
+}
+.ant-form-item-explain{
+  position: absolute;
+  bottom: 2px;
+  transform: translateY(100%);
+  font-size: 12px;
+}
 
 .tpl-dialog{
   top: 40px;
@@ -26,6 +35,9 @@ textarea.ant-input{
     > .ant-row{
       height: calc(100vh - 234px);
       display: flex;
+      .ant-form-item-with-help{
+        margin-bottom: 24px;
+      }
       >.ant-col{
         flex-grow: 1;
         flex-shrink: 0;
@@ -46,7 +58,7 @@ textarea.ant-input{
   top: 18px;
   padding-bottom: 0;
   .ant-modal-body{
-    >.ant-form{
+    >.ant-row{
       height: calc(100vh - 190px);
       display: flex;
       flex-direction: column;
@@ -89,7 +101,7 @@ textarea.ant-input{
   }
 }
 
-.tpl-dialog__req-resp{
+.dialog-req-resp{
   .ant-form{
     .ant-form-item{
       margin-bottom: 6px;
@@ -135,3 +147,168 @@ textarea.ant-input{
     }
   }
 }
+
+.dialog-req-resp-edit{
+  top: 18px;
+  padding-bottom: 0;
+  .ant-modal-body{
+    > .ant-row{
+      height: calc(100vh - 188px);
+      display: flex;
+      >.ant-col{
+        flex-grow: 1;
+        flex-shrink: 0;
+        height: inherit;
+      }
+      // 左边操作和代码区域
+      >.ant-col:nth-child(1){
+        >* {
+          height: inherit;
+          > * {
+            height: inherit;
+          }
+          // 左边操作区域
+          >*:nth-child(1){
+            .ant-form-item{
+              margin-bottom: 0;
+            }
+            >* {
+              height: inherit;
+              display: flex;
+              flex-direction: column;
+              // 搜索操作区域
+              >:nth-child(1){
+                flex-shrink: 0;
+                .ant-space{
+                  margin-bottom: 14px!important;
+                  margin-right: 0!important;
+                }
+              }
+              // 字段树结构区域
+              >:nth-child(2){
+                flex-grow: 1;
+                height: 0;
+                >div{
+                  display: flex;
+                  height: 100%;
+                  flex-direction: column;
+                  >:nth-child(1){
+                    flex-shrink: 0;
+                    padding-left: 14px;
+                    margin: 0 0 14px 0;
+                    font-size: 16px;
+                  }
+                  >:nth-child(2){
+                    flex-grow: 1;
+                    height: 0;
+                    overflow: auto;
+                  }
+                }
+              }
+            }
+          }
+          // 代码BOX
+          >*:nth-child(2){
+            height: 100%;
+            .ant-form-item{
+              margin-bottom: 0;
+            }
+            >*{
+              height: 100%;
+              > * {
+                height: inherit;
+                >* {
+                  height: inherit;
+                  > * {
+                    height: inherit;
+                    >*{
+                      height: inherit;
+                      >*{
+                        height: inherit;
+                        overflow: auto;
+                        border: 1px solid #ededed;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      // 右边代码区域
+      >.ant-col:nth-child(2){
+        >.ant-row{
+          height: inherit;
+          > .ant-col{
+            height: inherit;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+.dialog-api-edit{
+  top: 18px;
+  padding-bottom: 0;
+  .ant-modal-body{
+    > .ant-row{
+      height: calc(100vh - 188px);
+      display: flex;
+      >.ant-col{
+        flex-grow: 1;
+        flex-shrink: 0;
+        height: inherit;
+      }
+      // 左边代码区域
+      >.ant-col:nth-child(1){
+        >* {
+          height: inherit;
+          display: flex;
+          flex-direction: column;
+          // 头部
+          >*:nth-child(1){
+            flex-shrink: 0;
+            margin-bottom: 16px;
+            .ant-form-item{
+              margin-bottom: 0;
+            }
+          }
+          // 代码BOX
+          >*:nth-child(2){
+            flex-grow: 1;
+            height: 0;
+            margin-bottom: 0;
+            >*{
+              height: 100%;
+              > * {
+                height: inherit;
+                >* {
+                  height: inherit;
+                  > * {
+                    height: inherit;
+                    >*{
+                      height: inherit;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      // 右边代码区域
+      >.ant-col:nth-child(2){
+        >.ant-row{
+          height: inherit;
+          > .ant-col{
+            height: inherit;
+          }
+        }
+      }
+    }
+  }
+}
+

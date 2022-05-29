@@ -4,8 +4,7 @@ import { Select, Row, Col, Radio, Form, Input, Modal, Space, Button, message } f
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { find, pick } from 'lodash';
 
-import { Tpl } from '@/models/tpl';
-import { generateTpl } from '@/core';
+import { Tpl, generateTpl } from '@/core';
 import CodeBox from '@/components/code-box';
 import { API_TPL_DEMO1 } from '@/constants/tpl/api';
 import { ApiInterface, Project } from '@/core/types';

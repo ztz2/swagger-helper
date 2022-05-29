@@ -4,16 +4,11 @@ import { Tooltip, Result, Alert, Tag, Collapse, Spin, Empty, Space, Button, mess
 import { SmileOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 
 import { ApiInterface, Project } from '@/core/types';
-import { generateTpl, swaggerParser } from '@/core';
-import {
-  generateEntityField as gef,
-} from '@/core/template';
-
+import { Tpl, generateTpl, swaggerParser } from '@/core';
 import CodeBox from '@/components/code-box';
 import Tree from './components/tree/index';
 import DialogApi from './components/dialog-api';
 import styles from './index.scss';
-import { Tpl } from '@/models/tpl';
 import { copyToClipboard } from '@/utils';
 import DialogReqResp from '@/pages/detail/components/dialog-req-resp';
 import { REQ_RESP_TPL6000 } from '@/constants/tpl/req-resp';
@@ -36,7 +31,6 @@ const DetailPage: FC<DetailPageProps> = ({swagger, tpl, apiTplList, dispatch}) =
   const [visibleImport, setVisibleImport] = useState<boolean>(false);
 
   useEffect(() => {
-    console.log(tpl);
     const { uid } = urlParams;
     const s = swagger.list.find((t: Project) => t.uid === uid);
     if (!s) {

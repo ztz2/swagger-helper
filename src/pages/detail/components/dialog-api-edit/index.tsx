@@ -7,8 +7,7 @@ import { html } from '@codemirror/lang-html';
 import { json } from '@codemirror/lang-json';
 import { v4 as uuidv4 } from 'uuid';
 
-import { Tpl } from '@/models/tpl';
-import { generateTpl } from '@/core';
+import { Tpl, generateTpl } from '@/core';
 import CodeBox from '@/components/code-box';
 import { getInitApiTplMockData } from '@/constants/tpl/api';
 
@@ -75,7 +74,7 @@ const DialogApiEdit: FC<DialogApiEditProps> = ({visible, options, tplEntity, onA
     <>
       <Modal
         width="100%"
-        className="tpl-edit-dialog"
+        className="dialog-api-edit"
         visible={visible}
         title={entity.uid ? '编辑API模板' : '新增API模板'}
         onCancel={() => onChangeVisible?.(false)}
@@ -83,62 +82,58 @@ const DialogApiEdit: FC<DialogApiEditProps> = ({visible, options, tplEntity, onA
           <Button onClick={() => onChangeVisible?.(!visible)}>关闭</Button>
         ]}
       >
-        <Form
-          name="basic"
-          form={formRef}
-          labelCol={{ span: 0 }}
-          wrapperCol={{ span: 24 }}
-          initialValues={{ name: '' }}
-          onFinish={onFinish}
-          autoComplete="off"
-        >
-          <div>
-            <Space>
-              <Form.Item
-                name="name"
-                label="必填"
-                rules={[{ required: true, message: '必填项' }]}
-              >
-                <Input value={entity.name} onChange={(e) => setEntity({...entity, name: e.target.value})} placeholder="模板名称" />
-              </Form.Item>
-              { entity.uid && entity.type > -1 &&
-              <Popconfirm
-                title="确定要删除该模板?"
-                onConfirm={handleDel}
-                okText="确定"
-                cancelText="取消"
+        <Row gutter={20}>
+          <Col span={10}>
+            <Form
+              name="basic"
+              form={formRef}
+              labelCol={{ style: { width: '80px' } }}
+              initialValues={{ name: '' }}
+              onFinish={onFinish}
+              autoComplete="off"
+            >
+              <Space>
+                <Form.Item
+                  name="name"
+                  label="模板名称"
+                  style={{marginRight: 20}}
+                  rules={[{ required: true, message: '必填项' }]}
                 >
-                <Button danger>删除</Button>
-                </Popconfirm>
-              }
-              <Button onClick={handleDebug} disabled={codeMirrorValue.trim().length === 0}>测试</Button>
-              <Button disabled={codeMirrorValue.trim().length === 0 || entity.name.trim().length == 0} type="primary" htmlType="submit">保存</Button>
-            </Space>
-          </div>
-          <div>
-            <Row gutter={20}>
-              <Col span={12}>
-                <Form.Item name="value">
-                  <CodeMirror
-                    width="100%"
-                    value={codeMirrorValue}
-                    extensions={[javascript(), html(), json()]}
-                    onChange={(value, viewUpdate) => {
-                      setCodeMirrorValue(value);
-                    }}
-                  />
+                  <Input value={entity.name} onChange={(e) => setEntity({...entity, name: e.target.value})} placeholder="模板名称" />
                 </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Row gutter={20}>
-                  {tplCodeList.map((c) => (
-                    <Col span={24 / tplCodeList.length}><CodeBox code={c} /></Col>
-                  ))}
-                </Row>
-              </Col>
+                { entity.uid && entity.type > -1 &&
+                <Popconfirm
+                  title="确定要删除该模板?"
+                  onConfirm={handleDel}
+                  okText="确定"
+                  cancelText="取消"
+                >
+                  <Button danger>删除</Button>
+                </Popconfirm>
+                }
+                <Button onClick={handleDebug} disabled={codeMirrorValue.trim().length === 0}>测试</Button>
+                <Button disabled={codeMirrorValue.trim().length === 0 || entity.name.trim().length == 0} type="primary" htmlType="submit">保存</Button>
+              </Space>
+              <Form.Item name="value">
+                <CodeMirror
+                  width="100%"
+                  value={codeMirrorValue}
+                  extensions={[javascript(), html(), json()]}
+                  onChange={(value, viewUpdate) => {
+                    setCodeMirrorValue(value);
+                  }}
+                />
+              </Form.Item>
+            </Form>
+          </Col>
+          <Col span={14}>
+            <Row gutter={20}>
+              {tplCodeList.map((c) => (
+                <Col span={24 / tplCodeList.length}><CodeBox code={c} /></Col>
+              ))}
             </Row>
-          </div>
-        </Form>
+          </Col>
+        </Row>
       </Modal>
     </>
   )

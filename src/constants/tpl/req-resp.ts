@@ -236,9 +236,6 @@ export default {
 export const REQ_RESP_TPL6000 =
   COMMON_HEAD + `
 function renderTpl (requests, responses, options) {
-  console.log(requests);
-  console.log(responses);
-  console.log(options);
   const result = [];
   options = lodash.merge({}, lodash.isPlainObject(options) ? options : {});
 

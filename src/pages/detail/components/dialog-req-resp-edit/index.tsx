@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import React, { FC, useState, useEffect } from 'react';
 import { IndexModelState, ConnectProps, connect } from 'umi';
 import {
@@ -10,7 +11,6 @@ import {
   Popconfirm,
   Button,
   message,
-  Select,
   InputNumber,
   Checkbox,
   Tree,
@@ -21,19 +21,18 @@ import { html } from '@codemirror/lang-html';
 import { json } from '@codemirror/lang-json';
 import { v4 as uuidv4 } from 'uuid';
 
-import { Tpl } from '@/models/tpl';
-import { generateTpl } from '@/core';
+import { Tpl, generateTpl } from '@/core';
 import CodeBox from '@/components/code-box';
-import { getInitApiTplMockData } from '@/constants/tpl/api';
 import { ApiInterface, FieldInterface } from '@/core/types';
-import { FIELD_NAMES } from '@/constants';
+import { FIELD_NAMES, FILTER_REQUEST_FIELD } from '@/constants';
 import { getMockApiData } from '@/constants/tpl/req-resp';
 
-const formItemLayout = {
-  labelCol: { span: 8 },
-  wrapperCol: { span: 16 },
-};
+import { treeFindParentNodes, treeForEach, treeToList } from '@/utils/tree';
 
+const formItemLayout = {
+  labelCol: { style: { width: '156px' } },
+  wrapperCol: { style: { flexGrow: 1 } },
+};
 interface DialogReqRespEditProps extends ConnectProps {
   tplEntity: Tpl
   visible: boolean
@@ -50,9 +49,13 @@ const DialogReqRespEdit: FC<DialogReqRespEditProps> = ({visible, options, tplEnt
   const [entity, setEntity] = useState<Tpl>(new Tpl());
   const [codeMirrorValue, setCodeMirrorValue] = useState('');
 
+  const [isRender, setIsRender] = useState(false);
   const [selectApi, setSelectApi] = useState<ApiInterface>(getMockApiData());
   const [reqTree, setReqTree] = useState<Array<FieldInterface>>([]);
   const [respTree, setRespTree] = useState<Array<FieldInterface>>([]);
+  const [reqCheckedKeys, setReqCheckedKeys] = useState<Array<string>>([]);
+  const [respCheckedKeys, setRespCheckedKeys] = useState<Array<string>>([]);
+  const [respExpandedKeys, setRespExpandedKeys] = useState<Array<string>>([]);
   const [reqCheckedNodes, setReqCheckedNodes] = useState<Array<FieldInterface>>([]);
   const [respCheckedNodes, setRespCheckedNodes] = useState<Array<FieldInterface>>([]);
 
@@ -68,10 +71,57 @@ const DialogReqRespEdit: FC<DialogReqRespEditProps> = ({visible, options, tplEnt
   }, [visible]);
 
   useEffect(() => {
-    console.log('selectApi: ', JSON.stringify(selectApi));
-    setReqTree(selectApi?.requests ?? []);
-    setRespTree(selectApi?.responses ?? []);
+    const requests = selectApi?.requests ?? [];
+    const responses = selectApi?.responses ?? [];
+
+    // 请求数据字段选中
+    const reqCheckedNodeList = cloneDeep(requests).map((t) => {
+      return (t.key.includes('.') || FILTER_REQUEST_FIELD.includes(t.key)) ? null : t;
+    }).filter((t) => t);
+    setReqCheckedNodes(reqCheckedNodeList);
+    setReqCheckedKeys(reqCheckedNodeList.map((t) => t.uid));
+
+    // 响应数据字段选中
+    const initNodeList = (key = 'content') => {
+      const result = [];
+      let lock = false;
+      treeForEach(responses, (item) => {
+        if (item.key === key && !lock) {
+          lock = true;
+          item.children.forEach((t) => {
+            if (!t.key.includes('.') && !FILTER_REQUEST_FIELD.includes(t.key)) {
+              result.push(t);
+            }
+          });
+        }
+      });
+      return result;
+    };
+    let respCheckedNodeList = initNodeList('content');
+    respCheckedNodeList = respCheckedNodeList.length > 0 ? respCheckedNodeList : initNodeList('data');
+    const t = respCheckedNodeList.map((t) => t.uid);
+    setRespCheckedKeys(t);
+    setRespCheckedNodes(respCheckedNodeList);
+
+    // 响应数据，子集选中，父级展开
+    const expand = [];
+    respCheckedNodeList.forEach((node) => {
+      treeFindParentNodes(treeToList(cloneDeep(responses)), node, { id: 'uid', pid: 'parentUid', }).forEach((pNode) => {
+        expand.push(pNode.uid);
+      });
+    });
+    setRespExpandedKeys(expand);
+
+    setReqTree(requests);
+    setRespTree(responses);
   }, [selectApi]);
+
+  useEffect(() => {
+    if (isRender) {
+      onFinish(options, true);
+      setIsRender(false);
+    }
+  }, [reqTree, respTree]);
 
   const handleDebug = function(data: Tpl, isFirst: boolean) {
     const v = data?.value ? data : entity;
@@ -117,143 +167,152 @@ const DialogReqRespEdit: FC<DialogReqRespEditProps> = ({visible, options, tplEnt
     <>
       <Modal
         width="100%"
-        className="tpl-edit-dialog tpl-dialog__req-resp"
+        className="dialog-req-resp-edit"
         visible={visible}
-        title={entity.uid ? '编辑API模板' : '新增API模板'}
+        title={entity.uid ? '编辑(请求参数 | 响应数据)模板' : '新增(请求参数 | 响应数据)模板'}
         onCancel={() => onChangeVisible?.(false)}
         footer={[
           <Button onClick={() => onChangeVisible?.(!visible)}>关闭</Button>
         ]}
       >
-        <Form
-          name="basic"
-          form={formRef}
-          labelCol={{ span: 0 }}
-          wrapperCol={{ span: 24 }}
-          initialValues={{ name: '' }}
-          onFinish={onFinish}
-          autoComplete="off"
-        >
-          <div />
-          <div>
+        <Row gutter={20}>
+          <Col span={14}>
             <Row gutter={20}>
-              <Col span={14}>
-                <Row>
-                  <Col span={8}>
-                    <Form
-                      form={formRef}
-                      {...formItemLayout}
-                      initialValues={options}
-                      onFinish={onFinish}
-                    >
-                      <Row gutter={10}>
-                        <Col span={24}>
-                          <Space style={{margin: '0 20px 30px 0', justifyContent: 'flex-end', display: 'flex', flexWrap: 'wrap'}}>
-                            { entity.uid && entity.type > 0 &&
-                            <Popconfirm
-                              title="确定要删除该模板?"
-                              onConfirm={handleDel}
-                              okText="确定"
-                              cancelText="取消"
-                            >
-                              <Button danger>删除</Button>
-                            </Popconfirm>
-                            }
-                            <Button onClick={handleDebug} disabled={codeMirrorValue.trim().length === 0}>测试</Button>
-                            <Button disabled={codeMirrorValue.trim().length === 0 || entity.name.trim().length == 0} type="primary" htmlType="submit">保存</Button>
-                          </Space>
-                        </Col>
-                        <Col span={24}>
-                          <Space style={{display: 'flex', flexWrap: 'wrap'}}>
-                            <Form.Item
-                              name="name"
-                              label="必填"
-                              rules={[{ required: true, message: '必填项' }]}
-                            >
-                              <Input value={entity.name} onChange={(e) => setEntity({...entity, name: e.target.value})} placeholder="模板名称" />
-                            </Form.Item>
-                            <Form.Item name="maxlength" style={{}}>
-                              <InputNumber placeholder="输入框maxlength" style={{ width: 156 }} />
-                            </Form.Item>
-                            <Form.Item
-                              name="crud"
-                              valuePropName="checked"
-                            >
-                              <Checkbox><span className="white-space-nowrap">生成CURD</span></Checkbox>
-                            </Form.Item>
-                            <Form.Item
-                              name="grid"
-                              valuePropName="checked"
-                            >
-                              <Checkbox><span className="white-space-nowrap">格栅布局</span></Checkbox>
-                            </Form.Item>
-                            <Form.Item
-                              name="placeholder"
-                              valuePropName="checked"
-                            >
-                              <Checkbox><span className="white-space-nowrap">输入框生成placeholder</span></Checkbox>
-                            </Form.Item>
-                            <Form.Item
-                              name="generateLabel"
-                              valuePropName="checked"
-                            >
-                              <Checkbox><span className="white-space-nowrap">表单生成label</span></Checkbox>
-                            </Form.Item>
-                          </Space>
-                        </Col>
-                      </Row>
-                      <Row>
-                        <Col span={12}>
-                          <div>请求数据字段</div>
-                          <div>
-                            <Tree
-                              treeData={reqTree}
-                              fieldNames={FIELD_NAMES}
-                              onCheck={(selectedKeys, e) => handleTreeCheck(selectedKeys, e, 'req')}
-                              checkable
-                              checkStrictly
-                            />
-                          </div>
-                        </Col>
-                        <Col span={12}>
-                          <div>响应数据字段</div>
-                          <div>
-                            <Tree
-                              treeData={respTree}
-                              fieldNames={FIELD_NAMES}
-                              onCheck={(selectedKeys, e) => handleTreeCheck(selectedKeys, e, 'resp')}
-                              checkable
-                              checkStrictly
-                            />
-                          </div>
-                        </Col>
-                      </Row>
-                    </Form>
-                  </Col>
-                  <Col span={16}>
-                    <Form.Item name="value">
-                      <CodeMirror
-                        width="100%"
-                        value={codeMirrorValue}
-                        extensions={[javascript(), html(), json()]}
-                        onChange={(value, viewUpdate) => {
-                          setCodeMirrorValue(value);
-                        }}
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
+              <Col span={9}>
+                <Form
+                  form={formRef}
+                  {...formItemLayout}
+                  initialValues={options}
+                  onFinish={onFinish}
+                >
+                  <Row gutter={10}>
+                    <Col span={24}>
+                      <Space style={{margin: '0 20px 30px 0', justifyContent: 'flex-end', display: 'flex', flexWrap: 'wrap'}}>
+                        { entity.uid && entity.type > 0 &&
+                        <Popconfirm
+                          title="确定要删除该模板?"
+                          onConfirm={handleDel}
+                          okText="确定"
+                          cancelText="取消"
+                        >
+                          <Button danger>删除</Button>
+                        </Popconfirm>
+                        }
+                        <Button onClick={handleDebug} disabled={codeMirrorValue.trim().length === 0}>测试</Button>
+                        <Button onClick={() => formRef.submit()} disabled={codeMirrorValue.trim().length === 0 || entity.name.trim().length == 0} type="primary">保存</Button>
+                      </Space>
+                    </Col>
+                    <Col span={24}>
+                      <div style={{marginBottom: 16}}>
+                        <Form.Item
+                          name="name"
+                          label="模板名称"
+                          rules={[{ required: true, message: '必填项' }]}
+                        >
+                          <Input
+                            value={entity.name}
+                            style={{width: '100%'}}
+                            onChange={(e) => setEntity({...entity, name: e.target.value})}
+                            placeholder="模板名称"
+                          />
+                        </Form.Item>
+                      </div>
+                      <div style={{marginBottom: 10}}>
+                        <Form.Item name="maxlength" label="输入框 maxlength 属性">
+                          <InputNumber placeholder="输入框 maxlength 属性" style={{ width: '100%' }} />
+                        </Form.Item>
+                      </div>
+                      <Space style={{display: 'flex', flexWrap: 'wrap'}}>
+                        <Form.Item
+                          name="crud"
+                          valuePropName="checked"
+                        >
+                          <Checkbox><span className="white-space-nowrap">生成CURD</span></Checkbox>
+                        </Form.Item>
+                        <Form.Item
+                          name="grid"
+                          valuePropName="checked"
+                        >
+                          <Checkbox><span className="white-space-nowrap">格栅布局</span></Checkbox>
+                        </Form.Item>
+                        <Form.Item
+                          name="placeholder"
+                          valuePropName="checked"
+                        >
+                          <Checkbox><span className="white-space-nowrap">输入框生成placeholder</span></Checkbox>
+                        </Form.Item>
+                        <Form.Item
+                          name="generateLabel"
+                          valuePropName="checked"
+                        >
+                          <Checkbox><span className="white-space-nowrap">表单生成label</span></Checkbox>
+                        </Form.Item>
+                      </Space>
+                    </Col>
+                  </Row>
+                  <Row className="tpl-dialog__req-resp-edit-fields">
+                    <Col span={12}>
+                      <div>请求数据字段</div>
+                      <div>
+                        <Tree
+                          treeData={reqTree}
+                          fieldNames={FIELD_NAMES}
+                          checkedKeys={reqCheckedKeys}
+                          onCheck={(selectedKeys, e) => {
+                            setReqCheckedKeys(selectedKeys);
+                            handleTreeCheck(selectedKeys, e, 'req');
+                          }}
+                          checkable
+                          checkStrictly
+                        />
+                      </div>
+                    </Col>
+                    <Col span={12}>
+                      <div>响应数据字段</div>
+                      <div>
+                        <Tree
+                          treeData={respTree}
+                          fieldNames={FIELD_NAMES}
+                          checkedKeys={respCheckedKeys}
+                          expandedKeys={respExpandedKeys}
+                          onCheck={(selectedKeys, e) => {
+                            setRespCheckedKeys(selectedKeys);
+                            handleTreeCheck(selectedKeys, e, 'resp');
+                          }}
+                          onExpand={(expandedKeys) => {
+                            setRespExpandedKeys(expandedKeys);
+                          }}
+                          checkable
+                          checkStrictly
+                        />
+                      </div>
+                    </Col>
+                  </Row>
+                </Form>
               </Col>
-              <Col span={10}>
-                <Row gutter={20}>
-                  {tplCodeList.map((c) => (
-                    <Col span={24 / tplCodeList.length}><CodeBox code={c} /></Col>
-                  ))}
-                </Row>
+              <Col span={15}>
+                <Form.Item name="value">
+                  <span style={{display: 'none'}}>{codeMirrorValue}</span>
+                  <CodeMirror
+                    width="100%"
+                    value={codeMirrorValue}
+                    extensions={[javascript(), html(), json()]}
+                    onChange={(value, viewUpdate) => {
+                      setCodeMirrorValue(value);
+                    }}
+                  />
+                </Form.Item>
               </Col>
             </Row>
-          </div>
-        </Form>
+          </Col>
+          <Col span={10}>
+            <Row gutter={20}>
+              {tplCodeList.map((c) => (
+                <Col span={24 / tplCodeList.length}><CodeBox code={c} /></Col>
+              ))}
+            </Row>
+          </Col>
+        </Row>
       </Modal>
     </>
   )

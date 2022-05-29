@@ -1,32 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Effect, ImmerReducer, Reducer, Subscription } from 'umi';
-import { Project, ProjectInterface } from '@/core/types';
+import { Tpl } from '@/core';
 import { cloneDeep, findIndex } from 'lodash';
 import { API_TPL1000 } from '@/constants/tpl/api';
 import { REQ_RESP_TPL2000, REQ_RESP_TPL2100, REQ_RESP_TPL6000 } from '@/constants/tpl/req-resp';
 import { message } from 'antd';
 import { checkType } from '@/utils';
-
-
-export class Tpl {
-  // 模板的唯一ID
-  uid = uuidv4()
-  // 模板名称
-  name = ''
-  // 模板类型(小于0: 代表系统内置 , 大于0: 代表自定义)
-  type = 1
-  // 模板内容
-  value = ''
-  // 默认模板
-  isDefault = false
-  constructor(name = '', value = '', type = 1, isDefault = false, uid = uuidv4()) {
-    this.name = name;
-    this.value = value;
-    this.type = type;
-    this.isDefault = isDefault;
-    this.uid = uid;
-  }
-}
+import { TPL_MODEL_STATE } from '@/constants';
 
 export interface TplModelState {
   // API方法相关的模板
@@ -49,17 +29,7 @@ export interface TplModelType {
 const TplModel: TplModelType = {
   namespace: 'tpl',
 
-  state: {
-    api: [
-      new Tpl('内置(API模板)', API_TPL1000, -1, true, 'API_TPL1000'),
-    ],
-    reqResp: [
-      new Tpl('内置(Vue-表格模板)', REQ_RESP_TPL2000, -1, true, 'REQ_RESP_TPL2000'),
-      new Tpl('内置(Vue-实体类模板)', REQ_RESP_TPL2100, -1, false, 'REQ_RESP_TPL2100'),
-
-      new Tpl('内置(请求参数&响应参数)', REQ_RESP_TPL6000, -1, false, 'REQ_RESP_TPL6000'),
-    ]
-  },
+  state: TPL_MODEL_STATE,
 
   reducers: {
     add(state: TplModelState, action: any) {
@@ -138,6 +108,27 @@ const TplModel: TplModelType = {
       }
       return { ...state };
     },
+    checkUpdate(state) {
+      for (const [k, v] of Object.entries(TPL_MODEL_STATE)) {
+        if (state.hasOwnProperty(k)) {
+          v.forEach((t) => {
+            const index = findIndex(state[k], ((item: Tpl) => item.uid === t.uid));
+            if (index !== -1) {
+              state[k].splice(index, 1, {
+                ...state[k][index],
+                name: t.name,
+                value: t.value,
+              });
+            } else {
+              state[k].push(t);
+            }
+          });
+        } else {
+          state[k] = v;
+        }
+      }
+      return {...state};
+    }
   },
 };
 

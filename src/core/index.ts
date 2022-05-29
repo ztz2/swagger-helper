@@ -4,17 +4,16 @@ import {
   Api,
   Field,
   FieldInterface,
+  Project,
   ProjectModule,
   SchemaInterface,
   ParameterInterface,
-  ProjectModuleInterface, Project,
+  ProjectModuleInterface,
 } from '@/core/types.ts';
-import ex from 'umi/dist';
 import { getSwagger } from '@/api';
 import SwaggerParser from '@apidevtools/swagger-parser';
 import { message } from 'antd';
-import _, { cloneDeep, merge } from 'lodash';
-import { getInitApiTplMockData } from '@/pages/detail/components/dialog-api-edit/tpl';
+import _, { cloneDeep } from 'lodash';
 import { listToTree, treeToList } from '@/utils/tree';
 
 const template = require('@/utils/art-template');
@@ -22,6 +21,27 @@ const template = require('@/utils/art-template');
 if (window.template == null) { window.template = template; }
 template.defaults.escape = false;
 template.defaults.minimize = false;
+
+export class Tpl {
+  // 模板的唯一ID
+  uid = uuidv4()
+  // 模板名称
+  name = ''
+  // 模板类型(小于0: 代表系统内置 , 大于0: 代表自定义)
+  type = 1
+  // 模板内容
+  value = ''
+  // 默认模板
+  isDefault = false
+  constructor(name = '', value = '', type = 1, isDefault = false, uid = uuidv4()) {
+    this.name = name;
+    this.value = value;
+    this.type = type;
+    this.isDefault = isDefault;
+    this.uid = uid;
+  }
+}
+
 
 const filterType = (type = ''): string => {
   switch (type) {
@@ -269,7 +289,6 @@ export const swaggerParser = async (param: Project, showErrorMsg = true) => {
     showErrorMsg && message.error(errText);
     throw Error(errText);
   }
-  console.log('api', api);
   const modules = convertSwaggerData(api);
   if (modules.length === 0) {
     const errText = '没有模块可以生成';
@@ -312,7 +331,6 @@ export const generateTpl = function(tpl: string, ...params: Array<any>) {
       throw Error('renderTpl 函数返回值数据类型为： Array<string>');
     }
   } catch (e: any) {
-    // console.error(e);
     if (typeof e === 'string') {
       result = [e];
       message.error(e);

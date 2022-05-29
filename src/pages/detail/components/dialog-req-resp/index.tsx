@@ -2,22 +2,22 @@ import React, { FC, useState, useEffect } from 'react';
 import { IndexModelState, ConnectProps, connect } from 'umi';
 import { Select, Row, Col, Form, Tree, Modal, Space, Button, message, Checkbox, InputNumber } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
-import { find, pick } from 'lodash';
+import { cloneDeep, find, pick } from 'lodash';
 
-import { Tpl } from '@/models/tpl';
-import { generateTpl, processFieldTree } from '@/core';
+import { Tpl, generateTpl, processFieldTree } from '@/core';
 import CodeBox from '@/components/code-box';
 import { API_TPL_DEMO1 } from '@/constants/tpl/api';
 import { ApiInterface, FieldInterface, Project } from '@/core/types';
 import { GenerateReqRespTplOptions } from '@/core/template';
 import DialogReqRespEdit from '@/pages/detail/components/dialog-req-resp-edit';
-import { FIELD_NAMES } from '@/constants';
+import { FIELD_NAMES, FILTER_REQUEST_FIELD } from '@/constants';
+import { treeFindParentNodes, treeForEach, treeToList } from '@/utils/tree';
 
 const { Option } = Select;
 const UPDATE_FIELDS = ['crud', 'grid', 'maxlength', 'placeholder', 'generateLabel'];
 const formItemLayout = {
-  labelCol: { span: 8 },
-  wrapperCol: { span: 16 },
+  labelCol: { style: { width: '156px' } },
+  wrapperCol: { style: { flexGrow: 1 } },
 };
 
 interface DialogReqRespProps extends ConnectProps {
@@ -35,9 +35,13 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
   const [tplCodeList, setTplCodeList] = useState<Array<string>>([]);
   const [editTpl, setEditTpl] = useState<Tpl>(new Tpl());
 
+  const [isRender, setIsRender] = useState(false);
   const [selectApi, setSelectApi] = useState<ApiInterface>();
   const [reqTree, setReqTree] = useState<Array<FieldInterface>>([]);
   const [respTree, setRespTree] = useState<Array<FieldInterface>>([]);
+  const [reqCheckedKeys, setReqCheckedKeys] = useState<Array<string>>([]);
+  const [respCheckedKeys, setRespCheckedKeys] = useState<Array<string>>([]);
+  const [respExpandedKeys, setRespExpandedKeys] = useState<Array<string>>([]);
   const [reqCheckedNodes, setReqCheckedNodes] = useState<Array<FieldInterface>>([]);
   const [respCheckedNodes, setRespCheckedNodes] = useState<Array<FieldInterface>>([]);
 
@@ -76,16 +80,19 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
         Object.assign(o, {...options, tpl: defaultUid});
       }
     }
+    let t = false;
     if (!selectApi && items?.length > 0) {
       const api = items[0];
       formRef.setFieldsValue({ api: api.uid });
       Object.assign(o, {...options, api: api.uid });
       setSelectApi(api);
+      t = true;
+      setIsRender(true);
     }
 
     setOptions(o as GenerateReqRespTplOptions);
     formRef.setFieldsValue(o);
-    onFinish(o, isDefaultAction);
+    !t && onFinish(o, isDefaultAction);
   };
 
   useEffect(() => { init(true, true); }, [])
@@ -101,10 +108,57 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
   }, [watchApi]);
 
   useEffect(() => {
-    console.log('selectApi: ', JSON.stringify(selectApi));
-    setReqTree(selectApi?.requests ?? []);
-    setRespTree(selectApi?.responses ?? []);
+    const requests = selectApi?.requests ?? [];
+    const responses = selectApi?.responses ?? [];
+    // 请求数据字段选中
+    const reqCheckedNodeList = cloneDeep(requests).map((t) => {
+      return (t.key.includes('.') || FILTER_REQUEST_FIELD.includes(t.key)) ? null : t;
+    }).filter((t) => t);
+    setReqCheckedNodes(reqCheckedNodeList);
+    setReqCheckedKeys(reqCheckedNodeList.map((t) => t.uid));
+
+    // 响应数据字段选中
+    const initNodeList = (key = 'content') => {
+      const result = [];
+      let lock = false;
+      treeForEach(responses, (item) => {
+        if (item.key === key && !lock) {
+          lock = true;
+          item.children.forEach((t) => {
+            if (!t.key.includes('.') && !FILTER_REQUEST_FIELD.includes(t.key)) {
+              result.push(t);
+            }
+          });
+        }
+      });
+      return result;
+    };
+    let respCheckedNodeList = initNodeList('content');
+    respCheckedNodeList = respCheckedNodeList.length > 0 ? respCheckedNodeList : initNodeList('data');
+    const t = respCheckedNodeList.map((t) => t.uid);
+    setRespCheckedKeys(t);
+    setRespCheckedNodes(respCheckedNodeList);
+
+    // 响应数据，子集选中，父级展开
+    const expand = [];
+    respCheckedNodeList.forEach((node) => {
+      treeFindParentNodes(treeToList(cloneDeep(responses)), node, { id: 'uid', pid: 'parentUid', }).forEach((pNode) => {
+        expand.push(pNode.uid);
+      });
+    });
+    setRespExpandedKeys(expand);
+
+    setReqTree(requests);
+    setRespTree(responses);
+
   }, [selectApi]);
+
+  useEffect(() => {
+    if (isRender) {
+      onFinish(options, true);
+      setIsRender(false);
+    }
+  }, [reqTree, respTree]);
 
   const handleAdd = () => {
     const entity = new Tpl();
@@ -122,7 +176,6 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
 
     setOptions({...values});
     dispatch?.({type: 'swagger/update', payload: { project, data: pick(values, UPDATE_FIELDS)}});
-    console.log(tplEntity.value);
     setTplCodeList(generateTpl(tplEntity.value, processFieldTree(reqTree, reqCheckedNodes), processFieldTree(respTree, respCheckedNodes), values));
     if (!isDefaultAction) {
       message.success('已生成');
@@ -204,7 +257,7 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
       <Modal
         width="96%"
         title="生成(请求参数 | 响应数据)"
-        className="tpl-dialog tpl-dialog__req-resp"
+        className="tpl-dialog dialog-req-resp"
         visible={visible}
         onCancel={() => onChangeVisible?.(false)}
         footer={[
@@ -214,7 +267,7 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
         ]}
       >
         <Row gutter={20}>
-          <Col span={8}>
+          <Col span={7}>
             <Space style={{marginBottom: 16, display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap'}}>
               <Button onClick={handleAdd}>新增模板</Button>
               <Button disabled={!watchTpl} onClick={handleEditTpl}>编辑模板</Button>
@@ -227,8 +280,8 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
               initialValues={options}
               onFinish={onFinish}
             >
-              <Row gutter={10}>
-                <Col span={12}>
+              <div>
+                <div style={{marginBottom: 18}}>
                   <Form.Item name="api" label="选择API" rules={[{ required: true, message: '必选项' }]}>
                     <Select allowClear>
                       {items.map((t: ApiInterface) => (
@@ -236,8 +289,8 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
                       ))}
                     </Select>
                   </Form.Item>
-                </Col>
-                <Col span={12}>
+                </div>
+                <div style={{marginBottom: 18}}>
                   <Form.Item name="tpl" label="选择模板" rules={[{ required: true, message: '必选项' }]}>
                     <Select allowClear>
                       {tplList.map((t: Tpl) => (
@@ -245,11 +298,11 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
                       ))}
                     </Select>
                   </Form.Item>
-                </Col>
+                </div>
                 <Col span={24}>
-                  <Space style={{display: 'flex', flexWrap: 'wrap'}}>
-                    <Form.Item name="maxlength" style={{}}>
-                      <InputNumber placeholder="输入框maxlength" style={{ width: 156 }} />
+                  <Space style={{display: 'flex', flexWrap: 'wrap', marginLeft: '-10px'}}>
+                    <Form.Item name="maxlength" label="输入框 maxlength 属性" style={{ margin: '0 12px 0 0' }}>
+                      <InputNumber placeholder="输入框 maxlength 属性" style={{ width: 156 }} />
                     </Form.Item>
                     <Form.Item
                       name="crud"
@@ -277,7 +330,7 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
                     </Form.Item>
                   </Space>
                 </Col>
-              </Row>
+              </div>
               <Row>
                 <Col span={12}>
                   <div>请求数据字段</div>
@@ -285,7 +338,11 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
                     <Tree
                       treeData={reqTree}
                       fieldNames={FIELD_NAMES}
-                      onCheck={(selectedKeys, e) => handleTreeCheck(selectedKeys, e, 'req')}
+                      checkedKeys={reqCheckedKeys}
+                      onCheck={(selectedKeys, e) => {
+                        setReqCheckedKeys(selectedKeys);
+                        handleTreeCheck(selectedKeys, e, 'req');
+                      }}
                       checkable
                       checkStrictly
                     />
@@ -297,7 +354,15 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
                     <Tree
                       treeData={respTree}
                       fieldNames={FIELD_NAMES}
-                      onCheck={(selectedKeys, e) => handleTreeCheck(selectedKeys, e, 'resp')}
+                      checkedKeys={respCheckedKeys}
+                      expandedKeys={respExpandedKeys}
+                      onCheck={(selectedKeys, e) => {
+                        setRespCheckedKeys(selectedKeys);
+                        handleTreeCheck(selectedKeys, e, 'resp');
+                      }}
+                      onExpand={(expandedKeys) => {
+                        setRespExpandedKeys(expandedKeys);
+                      }}
                       checkable
                       checkStrictly
                     />
@@ -306,7 +371,7 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
               </Row>
             </Form>
           </Col>
-          <Col span={16}>
+          <Col span={17}>
             <Row gutter={20}>
               {tplCodeList.map((t) => (
                 <Col span={24 / tplCodeList.length}>
