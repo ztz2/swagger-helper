@@ -287,8 +287,8 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
                       {items.map((t: ApiInterface) => (
                         <Option value={t.uid}>
                           <Space>
+                            <span>【{t.method.toUpperCase()}】</span>
                             <span>{t.label}</span>
-                            <span>{t.method}</span>
                             <span>{t.url}</span>
                           </Space>
                         </Option>
