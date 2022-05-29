@@ -79,7 +79,8 @@ function renderTpl (apiList, options) {
 /**------------------------------  API方法模板--开始  ------------------------------**/
 export const API_TPL1000 =
 COMMON_HEAD + `
-  const tpl1 = \`{{if !options.onlyApi}}{{if options.headText}}{{options.headText}}\n\n{{/if}}{{/if}}{{each apiList}}{{if $value.label}}// {{$value.label}}{{/if}}
+/********* 生成API函数方法 -- 开始 ***********/
+const tpl1 = \`{{if !options.onlyApi}}{{if options.headText}}{{options.headText}}\n\n{{/if}}{{/if}}{{each apiList}}{{if $value.label}}// {{$value.label}}{{/if}}
 export function {{$value.methodName}}(data) {
   return request({<% if (options.cancelSameRequest) { %>
     cancelSameRequest: true,<% } %>{{if options.baseURL}}
@@ -91,11 +92,14 @@ export function {{$value.methodName}}(data) {
 }{{if $index < apiList.length - 1}}\n{{/if}}{{if $index < apiList.length - 1}}\n{{/if}}{{/each}}\n\`;
 
   result.push(template.render(tpl1, { apiList, options }));
+  /********* 生成API函数方法 -- 结束 ***********/
 
+  /********* 生成API函数导出方法 -- 开始 ***********/
   const sortBy = lodash.sortBy;
   apiList = sortBy(apiList, (item) => item.methodName.length);
   const tpl2 = '{{if apiList.length > 0}}import {<% for(var i = 0; i < apiList.length; i++){ %>{{if apiList[i].label}}\\n  // {{apiList[i].label}}{{/if}}\\n  <%= apiList[i].methodName %>{{if i < apiList.length - 1}},{{/if}}<% } %>\\n} from \\'@/api\\'{{/if}}';
   result.push(template.render(tpl2, { apiList, options }));
+  /********* 生成API函数导出方法 -- 结束 ***********/
 
   return result;
 };
