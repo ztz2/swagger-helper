@@ -9,7 +9,9 @@ function Layout({ children, location, route, history, match, dispatch }: IRouteC
   const app = getDvaApp();
   const persistor = app._store.persist;
 
-  useEffect(() => { dispatch({ type: 'tpl/checkUpdate' }) }, [])
+  useEffect(() => { setTimeout(() => {
+    dispatch({ type: 'tpl/checkUpdate' });
+  }, 250) }, []);
 
   return ( // @ts-ignore
     <PersistGate loading={null} persistor={persistor}>
