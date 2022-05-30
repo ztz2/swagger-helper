@@ -114,7 +114,7 @@ export default {
   data() {
     return {
       tableData: [{
-        {{each responses}}{{if $index > 0}}            {{/if}}{{$value.key}}: '模拟数据：{{$index}}'{{if $index < responses.length - 1}},\n{{/if}}{{/each}}
+        {{each responses}}{{if $index > 0}}        {{/if}}{{$value.key}}: '模拟数据：{{$index}}'{{if $index < responses.length - 1}},\n{{/if}}{{/each}}
       }]
     }
   }
@@ -356,7 +356,7 @@ export default {
   data() {
     return {
       form: {{if requests.length === 0}}{},{{else}}{
-          {{each requests}}{{if $value.label || $value.typeValue}}{{if $index > 0}}   {{/if}}// {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n           {{/if}}{{$value.key}}: {{$value.defaultValue}}{{if $index !== requests.length - 1}},\n        {{/if}}{{/each}}
+        {{each requests}}{{if $value.label || $value.typeValue}}// {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n        {{/if}}{{$value.key}}: {{$value.defaultValue}}{{if $index !== requests.length - 1}},\n        {{/if}}{{/each}}
       },{{/if}}
     }
   },
