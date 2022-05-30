@@ -126,7 +126,7 @@ const DialogReqRespEdit: FC<DialogReqRespEditProps> = ({visible, options, tplEnt
   const handleDebug = function(data: Tpl, isFirst: boolean) {
     const v = data?.value ? data : entity;
     if (!isFirst) { v.value = codeMirrorValue; }
-    setTplCodeList(generateTpl(v.value, reqCheckedNodes, respCheckedNodes, options));
+    setTplCodeList(generateTpl(v.value, selectApi, reqCheckedNodes, respCheckedNodes, options));
   }
 
   const handleDel = () => {

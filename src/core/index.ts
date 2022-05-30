@@ -52,13 +52,17 @@ const filterType = (type = ''): string => {
   }
 };
 
-export const generateRequestMethodNameByUrl = (url = '', method = 'get', num = 1): string => {
+export const generateRequestMethodNameByUrl = (url = '', method: string, num = 1): string => {
   const urlPath = (url.replace(/\/\{.*?\}/gim, '')).split('/');
   const lastUrlPath = urlPath.slice(urlPath.length - num, urlPath.length).join(' ');
   if (lastUrlPath) {
-    return camelCase(`${method} ${lastUrlPath}`);
+    if (method) {
+      return camelCase(`${method} ${lastUrlPath}`);
+    } else {
+      return camelCase(lastUrlPath);
+    }
   }
-  return 'requestMethodName';
+  return 'api';
 };
 
 const getDefaultValue = (field: FieldInterface) => {
@@ -124,7 +128,7 @@ const schemaToTree = (schema: SchemaInterface, parentUid: string | null = null):
       if (type === 'object') {
         field.type = filterType(type);
         field.children = _schemaToTree(value, field.uid);
-        field.typeValue = 'Object';
+        field.typeValue = 'object';
       } else if (type === 'array') {
         const subType = value?.items?.type;
         field.type = filterType(type);
@@ -135,7 +139,7 @@ const schemaToTree = (schema: SchemaInterface, parentUid: string | null = null):
             items = value.items;
             field.children = _schemaToTree(value.items, field.uid);
           }
-          field.typeValue = 'Array<Object>';
+          field.typeValue = 'Array<object>';
         } else if (subType) {
           field.childType = filterType(subType);
           field.typeValue = `Array<${field.childType}>`;
@@ -171,14 +175,14 @@ const parametersToTree = (parameters: Array<ParameterInterface> = []) => {
       if (type === 'object') {
         field.type = filterType(type); // @ts-ignore
         field.children = schemaToTree(value, field.uid); // @ts-ignore
-        field.typeValue = 'Object';
+        field.typeValue = 'object';
       } else if (type === 'array') {
         const subType = value?.items?.type;
         field.type = filterType(type);
         field.typeValue = 'Array';
         if (subType === 'object') {
           field.children = schemaToTree(value.items, field.uid);
-          field.typeValue = 'Array<Object>';
+          field.typeValue = 'Array<object>';
         } else if (subType) {
           field.childType = filterType(subType);
           field.typeValue = `Array<${field.childType}>`;
@@ -229,6 +233,7 @@ export const convertSwaggerData = (apiSource: any): any => {
         nowApi.uid = uuidv4();
         nowApi.parentUid = projectModule.uid;
         nowApi.method = method;
+        nowApi.name = generateRequestMethodNameByUrl(path);
         nowApi.methodName = generateRequestMethodNameByUrl(path, method);
         nowApi.requests = [];
         // @ts-ignore

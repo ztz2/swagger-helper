@@ -183,12 +183,12 @@ const DetailPage: FC<DetailPageProps> = ({swagger, tpl, apiTplList, dispatch}) =
                             </Panel>
                             <Panel header="请求参数" key="2">
                               <div>
-                                <CodeBox code={generateTpl(REQ_RESP_TPL6000, api.requests, [])[0] } inCollapse />
+                                <CodeBox code={generateTpl(REQ_RESP_TPL6000, api, api.requests, [])[0] } inCollapse />
                               </div>
                             </Panel>
                             <Panel header="响应参数" key="3">
                               <div>
-                                <CodeBox code={generateTpl(REQ_RESP_TPL6000, [], api.responses)[1]} inCollapse />
+                                <CodeBox code={generateTpl(REQ_RESP_TPL6000, api, [], api.responses)[1]} inCollapse />
                               </div>
                             </Panel>
                           </Collapse>

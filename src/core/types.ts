@@ -40,9 +40,6 @@ export class Field implements FieldInterface {
   defaultValue = null
   uid = uuidv4()
   parentUid = null
-  _options = {
-    disableCheckbox: false
-  }
 }
 
 // API
@@ -51,6 +48,8 @@ export interface ApiInterface {
   label: string,
   // 接口地址
   url: string
+  // 根据URL生成的接口名称
+  name: string
   // 生成的接口地址
   methodUrl: string
   // 唯一的UID
@@ -71,6 +70,7 @@ export interface ApiInterface {
 
 export class Api implements ApiInterface {
   uid = ''
+  name = ''
   parentUid = ''
   method = ''
   methodName = ''

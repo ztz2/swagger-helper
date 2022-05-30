@@ -175,7 +175,7 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
     }
     setOptions({...values});
     dispatch?.({type: 'swagger/update', payload: { project, data: pick(values, UPDATE_FIELDS)}});
-    setTplCodeList(generateTpl(tplEntity.value, processFieldTree(reqTree, reqCheckedNodes), processFieldTree(respTree, respCheckedNodes), values, () => {
+    setTplCodeList(generateTpl(tplEntity.value, selectApi, processFieldTree(reqTree, reqCheckedNodes), processFieldTree(respTree, respCheckedNodes), values, () => {
       if (!isDefaultAction) {
         message.success('已生成');
       }

@@ -4,6 +4,7 @@ import {
   REQ_RESP_TPL2001,
   REQ_RESP_TPL2100,
   REQ_RESP_TPL2101,
+  REQ_RESP_TPL5000,
   REQ_RESP_TPL6000,
 } from '@/constants/tpl/req-resp';
 import { Tpl } from '@/core';
@@ -22,6 +23,8 @@ export const TPL_MODEL_STATE = {
 
     new Tpl('内置(Vue-实体类模板)', REQ_RESP_TPL2100, -1, false, 'REQ_RESP_TPL2100'),
     new Tpl('内置(Vue-实体类模板[element-ui表单])', REQ_RESP_TPL2101, -1, false, 'REQ_RESP_TPL2101'),
+
+    new Tpl('内置(TS-请求数据&响应数据Interface)', REQ_RESP_TPL5000, -1, false, 'REQ_RESP_TPL5000'),
 
     new Tpl('内置(请求参数&响应参数)', REQ_RESP_TPL6000, -1, false, 'REQ_RESP_TPL6000'),
   ]
