@@ -128,7 +128,7 @@ const schemaToTree = (schema: SchemaInterface, parentUid: string | null = null):
       // field.example = '';
       if (type === 'object') {
         field.type = filterType(type);
-        field.children = _schemaToTree(value, field.uid, []);
+        field.children = _schemaToTree(value, field.uid, memo);
         field.typeValue = 'object';
       } else if (type === 'array') {
         const subType = value?.items?.type;
@@ -138,7 +138,7 @@ const schemaToTree = (schema: SchemaInterface, parentUid: string | null = null):
           // 避免出现递归调用情况
           if (items !== value.items) {
             items = value.items;
-            field.children = _schemaToTree(value.items, field.uid, []);
+            field.children = _schemaToTree(value.items, field.uid, memo);
           }
           field.typeValue = 'Array<object>';
         } else if (subType) {
