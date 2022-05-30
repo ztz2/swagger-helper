@@ -56,13 +56,15 @@
   }
   >:nth-child(2){
     height: 100%;
-    width: 30px;
+    width: 46px;
     display: flex;
     align-items: center;
     flex-shrink: 0;
     z-index: 10;
-    margin-left: 16px;
+    padding-left: 16px;
     cursor: pointer;
+    background: #1e282c;
+    position: relative;
     >span{
       transition: .25s;
     }
