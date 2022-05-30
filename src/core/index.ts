@@ -93,11 +93,12 @@ const getDefaultValue = (field: FieldInterface) => {
 
 const schemaToTree = (schema: SchemaInterface, parentUid: string | null = null): Array<FieldInterface> => {
   let items: any;
-  const _schemaToTree = (schema: SchemaInterface, parentUid: string | null = null): Array<FieldInterface> => {
+  const _schemaToTree = (schema: SchemaInterface, parentUid: string | null = null, memo: Array<object>): Array<FieldInterface> => {
     const result: Array<FieldInterface> = [];
-    if (!schema) {
+    if (!schema || memo.includes(schema)) {
       return result;
     }
+    memo.push(schema);
     let {
       properties = {},
       required = [],
@@ -127,7 +128,7 @@ const schemaToTree = (schema: SchemaInterface, parentUid: string | null = null):
       // field.example = '';
       if (type === 'object') {
         field.type = filterType(type);
-        field.children = _schemaToTree(value, field.uid);
+        field.children = _schemaToTree(value, field.uid, []);
         field.typeValue = 'object';
       } else if (type === 'array') {
         const subType = value?.items?.type;
@@ -137,7 +138,7 @@ const schemaToTree = (schema: SchemaInterface, parentUid: string | null = null):
           // 避免出现递归调用情况
           if (items !== value.items) {
             items = value.items;
-            field.children = _schemaToTree(value.items, field.uid);
+            field.children = _schemaToTree(value.items, field.uid, []);
           }
           field.typeValue = 'Array<object>';
         } else if (subType) {
@@ -149,7 +150,7 @@ const schemaToTree = (schema: SchemaInterface, parentUid: string | null = null):
     }
     return result;
   };
-  return _schemaToTree(schema, parentUid);
+  return _schemaToTree(schema, parentUid, []);
 };
 
 const parametersToTree = (parameters: Array<ParameterInterface> = []) => {
