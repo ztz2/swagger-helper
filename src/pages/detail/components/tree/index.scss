@@ -16,6 +16,7 @@
   >:nth-child(1){
     flex-grow: 1;
     display: flex;
+    width: 0;
     justify-content: space-between;
     .treeLabelText{
       display: flex;
