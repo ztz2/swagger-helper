@@ -1,8 +1,32 @@
 import { cloneDeep } from 'lodash';
 
-const COMMON_HEAD = `
-
-/**
+const COMMON_HEAD =
+`/**
+// API
+export interface ApiInterface {
+  // 接口名称
+  label: string,
+  // 接口地址
+  url: string
+  // 根据URL生成的接口名称
+  name: string
+  // 生成的接口地址
+  methodUrl: string
+  // 唯一的UID
+  uid: string
+  // 父节点UID
+  parentUid: string
+  // 接口请求方法
+  method: string
+  // 生成的接口请求方法名称
+  methodName: string
+  // 请求数据类型
+  requestContentType: string
+  // 请求数据字段集合
+  requests: Array<FieldInterface>
+  // 响应数据字段集合
+  responses: Array<FieldInterface>
+}
 // 请求数据&响应数据中的字段
 export interface FieldInterface {
   // 字段
@@ -32,6 +56,8 @@ export interface FieldInterface {
 }
 // 可选的配置项
 type Options = {
+  // 是否生成分号
+  semi: true,
   // 是否生成CURD功能
   crud: boolean
   // 是否使用格栅布局
@@ -43,7 +69,7 @@ type Options = {
   // 表单是否生成label
   generateLabel: boolean
 }
- * @param api { Array<FieldInterface> } 请求数据字段集合
+ * @param api { ApiInterface } 当前选择的接口
  * @param requests { Array<FieldInterface> } 请求数据字段集合
  * @param responses { Array<FieldInterface> } 响应数据字段集合
  * @param options { Options } 可选的配置项
@@ -62,8 +88,51 @@ function renderTpl (api, requests, responses, options) {
   }, lodash.isPlainObject(options) ? options : {});
 `;
 
-/**------------------------------  Vue-表格模板--开始  ------------------------------**/
+
+/**------------------------------  Vue-表格模板[element-ui表格]--开始  ------------------------------**/
 export const REQ_RESP_TPL2000 =
+  COMMON_HEAD + `
+  const tpl =
+\`<template>
+  <el-table
+    :data="tableData"
+    style="width: 100%">
+    <el-table-column
+      type="selection"
+      width="55">
+    </el-table-column>{{each responses}}
+    <el-table-column
+      prop="{{$value.key}}"
+      label="{{$value.label}}"
+      width="180">
+    </el-table-column>{{/each}}
+  </el-table>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      tableData: [{
+        {{each responses}}{{if $index > 0}}            {{/if}}{{$value.key}}: '模拟数据：{{$index}}'{{if $index < responses.length - 1}},\n{{/if}}{{/each}}
+      }]
+    }
+  }
+}
+</script>
+\`;
+  const requiredFieldList = requests.filter((t) => t.required);
+
+  result.push(template.render(tpl, { responses, requiredFieldList, options }))
+
+  return result;
+};
+`;
+/**------------------------------  Vue-表格模板[element-ui表格]--结束  ------------------------------**/
+
+
+/**------------------------------  Vue-表格模板[通用表格组件]--开始  ------------------------------**/
+export const REQ_RESP_TPL2001 =
 COMMON_HEAD + `
   const tpl = \`<template>
   <div class="app-container">
@@ -101,7 +170,8 @@ import {
   edit as edit,
   detail as detail,
   {{/if}}query as query,
-} from '@/api/system/user'{{if options.crud}}\nimport Entity from './components/entity'{{/if}}
+} from '@/api/system/user'{{if options.semi}};{{/if}}{{if options.crud}}
+import Entity from './components/entity'{{if options.semi}};{{/if}}{{/if}}
 
 export default {
   name: 'NrTable{{if options.crud}}Crud{{/if}}Example',
@@ -147,7 +217,7 @@ export default {
           label: '操作',
           width: '210',
           render: (h, { row }) => {
-            return (<el-button type='text' class='padding--empty'>自定义操作</el-button>)
+            return (<el-button type='text' class='padding--empty'>自定义操作</el-button>){{if options.semi}};{{/if}}
           }
         }
       ]
@@ -155,8 +225,8 @@ export default {
   },{{if options.crud}}
   computed: {
     entityComponentProps() {
-      const { options } = this
-      return { options }
+      const { options } = this{{if options.semi}};{{/if}}
+      return { options }{{if options.semi}};{{/if}}
     }
   },{{/if}}
   methods: {
@@ -171,50 +241,10 @@ export default {
   return result;
 };
 `;
-/**------------------------------  Vue-表格模板--开始  ------------------------------**/
+/**------------------------------  Vue-表格模板[通用表格组件]--开始  ------------------------------**/
 
-/**------------------------------  Vue-表格模板[element-ui表格]--开始  ------------------------------**/
-export const REQ_RESP_TPL2001 =
-  COMMON_HEAD + `
-  const tpl =
-\` <template>
-    <el-table
-      :data="tableData"
-      style="width: 100%">
-      <el-table-column
-        type="selection"
-        width="55">
-      </el-table-column>{{each responses}}
-      <el-table-column
-        prop="{{$value.key}}"
-        label="{{$value.label}}"
-        width="180">
-      </el-table-column>{{/each}}
-    </el-table>
-  </template>
 
-  <script>
-    export default {
-      data() {
-        return {
-          tableData: [{
-            {{each responses}}{{if $index > 0}}            {{/if}}{{$value.key}}: '模拟数据：{{$index}}'{{if $index < responses.length - 1}},\n{{/if}}{{/each}}
-          }]
-        }
-      }
-    }
-  </script>
-\`;
-  const requiredFieldList = requests.filter((t) => t.required);
-
-  result.push(template.render(tpl, { responses, requiredFieldList, options }))
-
-  return result;
-};
-`;
-/**------------------------------  Vue-表格模板[element-ui表格]--结束  ------------------------------**/
-
-/**------------------------------  Vue-实体类模板--开始  ------------------------------**/
+/**------------------------------  Vue-实体类模板[通用表单组件]--开始  ------------------------------**/
 export const REQ_RESP_TPL2100 =
 COMMON_HEAD + `
   const tpl = \`<template>
@@ -237,7 +267,7 @@ COMMON_HEAD + `
 </template>
 
 <script>
-import crudEntityMixin from '@/mixins/crud-entity'
+import crudEntityMixin from '@/mixins/crud-entity'{{if options.semi}};{{/if}}
 
 export default {
   emits: [],
@@ -265,33 +295,33 @@ export default {
   },
   computed: {
     currentDisabled() {
-      return this.disabled || this.actionType === 'DETAIL'
+      return this.disabled || this.actionType === 'DETAIL'{{if options.semi}};{{/if}}
     }
   },
   created() {
-    this.init()
+    this.init(){{if options.semi}};{{/if}}
   },
   methods: {
     // 【可选】初始化操作（比如：获取Select的option数据源、字典数据等）
     init() {
-      this.loadingOptions = true
+      this.loadingOptions = true{{if options.semi}};{{/if}}
       Promise.all([
         // 请求接口调用列表
       ]).finally(() => {
-        this.loadingOptions = false
-      })
+        this.loadingOptions = false{{if options.semi}};{{/if}}
+      }){{if options.semi}};{{/if}}
     },
      // 初始化或者重置一些字段，crud-mixin不会调用该函数
     initFields() {},
     // 【可选】表单校验前回调函数（可以在该回调中处理一些特殊字段），在此处也可以自定义校验一些字段，校验失败时，直接抛出异常，终止后续操作
     onBeforeValidate(entity, options = {}) {
       // 处理一下特殊的数据格式
-      return entity
+      return entity{{if options.semi}};{{/if}}
     },
     // 【可选】Prop实体类对象[$props.data字段]从外部中传递进来进而实体类数据发生变化后的回调函数（可以在这里处理一些特殊字段）
     onEntityPropAfterUpdate(entity, options = {}) {
       // 一些特殊字段，特殊处理
-      return entity
+      return entity{{if options.semi}};{{/if}}
     }
   }
 }
@@ -308,34 +338,34 @@ export default {
   return result;
 };
 `;
-/**------------------------------  Vue-实体类模板--结束  ------------------------------**/
+/**------------------------------  Vue-实体类模板[通用表单组件]--结束  ------------------------------**/
 
 /**------------------------------  Vue-实体类模板[element-ui表单]--开始  ------------------------------**/
 export const REQ_RESP_TPL2101 =
   COMMON_HEAD + `
   const tpl =
 \`<el-form ref="form" :model="form" label-width="80px">{{if requests.length > 0}}{{if options.grid}}\n    <el-row :gutter="30">{{/if}}{{if requests[0]}}
-    {{if options.grid}}  <el-col :span="span">\n        {{/if}}<el-form-item label="{{if requests[0].label}}{{requests[0].label}}{{else}}{{requests[0].key}}{{/if}}" prop="{{requests[0].key}}">
-      {{if options.grid}}    {{/if}}<el-input v-model="entity.{{requests[0].key}}" {{if options.placeholder}} placeholder="请输入{{if requests[0].label}}{{requests[0].label}}{{/if}}"{{/if}} />
-    {{if options.grid}}    {{/if}}</el-form-item>{{if options.grid}}\n      </el-col>{{/if}}{{/if}}{{each requests.slice(1)}}{{if options.grid}}\n      <el-col :span="span">\n        {{else}}\n    {{/if}}<el-form-item label="{{if $value.label}}{{$value.label}}{{else}}{{$value.key}}{{/if}}" prop="{{$value.key}}">
-      {{if options.grid}}    {{/if}}<el-input v-model="entity.{{$value.key}}"{{if options.placeholder}} placeholder="请输入{{if $value.label}}{{$value.label}}{{/if}}"{{/if}}{{if options.maxlength}} maxlength="{{options.maxlength}}"{{/if}} clearable />
-    {{if options.grid}}    {{/if}}</el-form-item>{{if options.grid}}\n      </el-col>{{/if}}{{/each}}{{if options.grid}}\n    </el-row>{{/if}}
+  {{if options.grid}}  <el-col :span="span">\n        {{/if}}<el-form-item label="{{if requests[0].label}}{{requests[0].label}}{{else}}{{requests[0].key}}{{/if}}" prop="{{requests[0].key}}">
+    {{if options.grid}}    {{/if}}<el-input v-model="entity.{{requests[0].key}}" {{if options.placeholder}} placeholder="请输入{{if requests[0].label}}{{requests[0].label}}{{/if}}"{{/if}} />
+  {{if options.grid}}    {{/if}}</el-form-item>{{if options.grid}}\n      </el-col>{{/if}}{{/if}}{{each requests.slice(1)}}{{if options.grid}}\n      <el-col :span="span">\n        {{else}}\n    {{/if}}<el-form-item label="{{if $value.label}}{{$value.label}}{{else}}{{$value.key}}{{/if}}" prop="{{$value.key}}">
+    {{if options.grid}}    {{/if}}<el-input v-model="entity.{{$value.key}}"{{if options.placeholder}} placeholder="请输入{{if $value.label}}{{$value.label}}{{/if}}"{{/if}}{{if options.maxlength}} maxlength="{{options.maxlength}}"{{/if}} clearable />
+  {{if options.grid}}    {{/if}}</el-form-item>{{if options.grid}}\n      </el-col>{{/if}}{{/each}}{{if options.grid}}\n    </el-row>{{/if}}
 {{/if}}{{if requests.length === 0}}\n    <!-- 没有可以生成的字段 -->\n  {{/if}}</el-form>
 <script>
-  export default {
-    data() {
-      return {
-        form: {{if requests.length === 0}}{},{{else}}{
-            {{each requests}}{{if $value.label || $value.typeValue}}{{if $index > 0}}   {{/if}}// {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n           {{/if}}{{$value.key}}: {{$value.defaultValue}}{{if $index !== requests.length - 1}},\n        {{/if}}{{/each}}
-        },{{/if}}
-      }
-    },
-    methods: {
-      onSubmit() {
-        console.log('submit!');
-      }
+export default {
+  data() {
+    return {
+      form: {{if requests.length === 0}}{},{{else}}{
+          {{each requests}}{{if $value.label || $value.typeValue}}{{if $index > 0}}   {{/if}}// {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n           {{/if}}{{$value.key}}: {{$value.defaultValue}}{{if $index !== requests.length - 1}},\n        {{/if}}{{/each}}
+      },{{/if}}
+    }
+  },
+  methods: {
+    onSubmit() {
+      console.log('submit!'){{if options.semi}};{{/if}}
     }
   }
+}
 </script>
 \`;
   const requiredFieldList = requests.filter((t) => t.required);
@@ -347,7 +377,7 @@ export const REQ_RESP_TPL2101 =
 `;
 /**------------------------------  Vue-实体类模板[element-ui表单]--结束  ------------------------------**/
 
-/**------------------------------  TS-请求数据&响应数据Interface--结束  ------------------------------**/
+/**------------------------------  TS-请求数据&响应数据[Interface]--结束  ------------------------------**/
 export const REQ_RESP_TPL5000 =
   COMMON_HEAD + `
   const apiName = lodash.upperFirst(api.methodName);
@@ -356,7 +386,7 @@ export const REQ_RESP_TPL5000 =
       return '';
     }
     const tpl = \`<% if (fieldList.length > 0) { %>{
-{{each fieldList}}{{if $value.label }}  // {{if $value.label}}{{$value.label}}{{/if}}\n{{/if}}  {{$value.key}}: {{if $value.type === 'object' || $value.type === 'array'}}<%= $imports.renderInterface($value, options, 1) %>{{else if $value.type !== 'object' || $value.type !== 'array'}}{{$value.typeValue}}{{else}}any{{/if}}{{if $index < fieldList.length-1}}\n{{/if}}{{/each}}
+{{each fieldList}}{{if $value.label }}  // {{if $value.label}}{{$value.label}}{{/if}}\n{{/if}}  {{$value.key}}: {{if $value.type === 'object' || $value.type === 'array'}}<%= $imports.renderInterface($value, options, 1) %>{{else if $value.type !== 'object' || $value.type !== 'array'}}{{$value.typeValue}}{{else}}any{{/if}}{{if options.semi}};{{/if}}{{if $index < fieldList.length-1}}\n{{/if}}{{/each}}
 }<% } %>\`;
     return template.render(tpl, { fieldList, options });
   }
@@ -365,14 +395,13 @@ export const REQ_RESP_TPL5000 =
     const gap = '  ';
     const mergeBlank = function (value, num = 0) { return Array.from({ length: num }).map(() => value).join(''); };
     const tpl = \`<% if (field.type==='array') { %>Array<<% } %>{
-{{each field.children}}{{if $value.label }}\${mergeBlank(gap, num + 1)}// {{if $value.label}}{{$value.label}}{{/if}}\n{{/if}}\${mergeBlank(gap, num + 1)}{{$value.key}}: {{if $value.type === 'object' || $value.type === 'array'}}<%= $imports.renderInterface($value, options, \${num + 1}) %>{{else if $value.type !== 'object' || $value.type !== 'array'}}{{$value.typeValue}}{{else}}any{{/if}}{{if $index < field.children.length-1}}\n{{/if}}{{/each}}
+{{each field.children}}{{if $value.label }}\${mergeBlank(gap, num + 1)}// {{if $value.label}}{{$value.label}}{{/if}}\n{{/if}}\${mergeBlank(gap, num + 1)}{{$value.key}}: {{if $value.type === 'object' || $value.type === 'array'}}<%= $imports.renderInterface($value, options, \${num + 1}) %>{{else if $value.type !== 'object' || $value.type !== 'array'}}{{$value.typeValue}}{{else}}any{{/if}}{{if options.semi}};{{/if}}{{if $index < field.children.length-1}}\n{{/if}}{{/each}}
 \${mergeBlank(gap, num)}}<% if (field.type==='array') { %>><% } %>\`;
     if ((field.type === 'array' || field.type === 'object') && field.children.length === 0) {
       return field.typeValue
     }
     return template.render(tpl, { field, options });
   };
-
 
   // 请求数据Interface生成
   let reqTpl = renderInterface(requests, options);
@@ -391,9 +420,10 @@ export const REQ_RESP_TPL5000 =
   return result;
 };
 `;
-/**------------------------------  TS-请求数据&响应数据Interface--结束  ------------------------------**/
+/**------------------------------  TS-请求数据&响应数据[Interface]--结束  ------------------------------**/
 
-/**------------------------------  请求参数&响应参数--开始  ------------------------------**/
+
+/**------------------------------  请求参数&响应参数[对象]--开始  ------------------------------**/
 export const REQ_RESP_TPL6000 =
   COMMON_HEAD + `
 function renderFields (fieldList, options) {
@@ -431,7 +461,59 @@ function renderFields (fieldList, options) {
   return result;
 };
 `;
-/**------------------------------  请求参数&响应参数--结束  ------------------------------**/
+/**------------------------------  请求参数&响应参数[对象]--结束  ------------------------------**/
+
+
+/**------------------------------  请求参数&响应参数[Class]--开始  ------------------------------**/
+export const REQ_RESP_TPL6001 =
+  COMMON_HEAD + `
+const apiName = lodash.upperFirst(api.methodName);
+function renderFields (fieldList, options) {
+    if (fieldList.length === 0) {
+      return '';
+    }
+    const tpl = \`<% if (fieldList.length > 0) { %>{
+{{each fieldList}}{{if $value.label || $value.typeValue}}  // {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n{{/if}}  {{$value.key}} = {{if $value.type === 'object' || $value.type === 'array'}}<%= $imports.generateEntityField($value, options, 1) %>{{else if $value.type !== 'object' || $value.type !== 'array'}}{{$value.defaultValue}}{{else}}null{{/if}}{{if options.semi}};{{/if}}{{if $index < fieldList.length-1}}\n{{/if}}{{/each}}
+}<% } %>\`;
+    return template.render(tpl, { fieldList, options });
+  }
+
+  template.defaults.imports.generateEntityField = function (field, options, num) {
+    const gap = '  ';
+    const mergeBlank = function (value, num = 0) { return Array.from({ length: num }).map(() => value).join(''); };
+    const tpl = \`<% if (field.type==='array') { %>[<% } %>{
+{{each field.children}}{{if $value.label || $value.typeValue}}\${mergeBlank(gap, num + 1)}// {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n{{/if}}\${mergeBlank(gap, num + 1)}{{$value.key}}: {{if $value.type === 'object' || $value.type === 'array'}}<%= $imports.generateEntityField($value, options, \${num + 1}) %>{{else if $value.type !== 'object' || $value.type !== 'array'}}{{$value.defaultValue}}{{else}}null{{/if}}{{if $index < field.children.length-1}},\n{{/if}}{{/each}}
+\${mergeBlank(gap, num)}}<% if (field.type==='array') { %>]<% } %>\`;
+    if (field.type === 'object' && field.children.length === 0) {
+      return '{}';
+    }
+    if (field.type === 'array' && (field.childType || field.children.length === 0)) {
+      return '[]';
+    }
+    return template.render(tpl, { field, options });
+  };
+
+
+  // 请求数据Interface生成
+  let reqTpl = renderFields(requests, options);
+  if (reqTpl.trim().length > 0) {
+    reqTpl = \`class \${apiName}ReqClass \${reqTpl}\n\`;
+  }
+  result.push(reqTpl);
+
+  // 响应数据Interface生成
+   let respTpl = renderFields(responses, options);
+  if (reqTpl.trim().length > 0) {
+    respTpl = \`class \${apiName}RespClass \${respTpl}\n\`;
+  }
+  result.push(respTpl);
+
+
+  return result;
+};
+`;
+/**------------------------------  请求参数&响应参数[Class]--结束  ------------------------------**/
+
 
 export const REQ_RESP_TPL_DEMO1 = COMMON_HEAD + `
   const tpl1 =

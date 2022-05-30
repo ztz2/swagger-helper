@@ -1,7 +1,7 @@
 import { cloneDeep } from 'lodash';
 
-const COMMON_HEAD = `
-/**
+const COMMON_HEAD =
+`/**
 // API
 interface ApiInterface {
   // 接口名称
@@ -56,6 +56,8 @@ export interface FieldInterface {
 }
 // 可选的配置项
 type Options = {
+  // 是否生成分号
+  semi: true,
   // baseURL
   baseURL: string
   // 是否只生成API接口函数方法
@@ -90,7 +92,7 @@ export function {{$value.methodName}}(data) {
     url: {{if $value.methodUrl.includes('{')}}\\\`{{else}}'{{/if}}{{$value.methodUrl}}{{if $value.methodUrl.includes('{')}}\\\`{{else}}'{{/if}},
     method: '{{$value.method}}',
     {{if $value.method === 'get' || $value.requestContentType.includes('application/x-www-form-urlencoded')}}params: data{{else}}data{{/if}}
-  })
+  }){{if options.semi}};{{/if}}
 }{{if $index < apiList.length - 1}}\n{{/if}}{{if $index < apiList.length - 1}}\n{{/if}}{{/each}}\n\`;
 
   result.push(template.render(tpl1, { apiList, options }));
@@ -99,7 +101,7 @@ export function {{$value.methodName}}(data) {
   /********* 生成API函数导出方法 -- 开始 ***********/
   const sortBy = lodash.sortBy;
   apiList = sortBy(apiList, (item) => item.methodName.length);
-  const tpl2 = '{{if apiList.length > 0}}import {<% for(var i = 0; i < apiList.length; i++){ %>{{if apiList[i].label}}\\n  // {{apiList[i].label}}{{/if}}\\n  <%= apiList[i].methodName %>{{if i < apiList.length - 1}},{{/if}}<% } %>\\n} from \\'@/api\\'{{/if}}';
+  const tpl2 = '{{if apiList.length > 0}}import {<% for(var i = 0; i < apiList.length; i++){ %>{{if apiList[i].label}}\\n  // {{apiList[i].label}}{{/if}}\\n  <%= apiList[i].methodName %>{{if i < apiList.length - 1}},{{/if}}<% } %>\\n} from \\'@/api\\'{{if options.semi}};{{/if}}{{/if}}';
   result.push(template.render(tpl2, { apiList, options }));
   /********* 生成API函数导出方法 -- 结束 ***********/
 

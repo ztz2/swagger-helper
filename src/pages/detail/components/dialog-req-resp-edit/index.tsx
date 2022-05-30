@@ -126,7 +126,8 @@ const DialogReqRespEdit: FC<DialogReqRespEditProps> = ({visible, options, tplEnt
   const handleDebug = function(data: Tpl, isFirst: boolean) {
     const v = data?.value ? data : entity;
     if (!isFirst) { v.value = codeMirrorValue; }
-    setTplCodeList(generateTpl(v.value, selectApi, reqCheckedNodes, respCheckedNodes, options));
+    const o = formRef.getFieldsValue();
+    setTplCodeList(generateTpl(v.value, selectApi, reqCheckedNodes, respCheckedNodes, o));
   }
 
   const handleDel = () => {
@@ -223,6 +224,13 @@ const DialogReqRespEdit: FC<DialogReqRespEditProps> = ({visible, options, tplEnt
                         </Form.Item>
                       </div>
                       <Space style={{display: 'flex', flexWrap: 'wrap'}}>
+                        <Form.Item
+                          name="semi"
+                          valuePropName="checked"
+                        >
+                          <Checkbox><span className="white-space-nowrap">分号符</span></Checkbox>
+                        </Form.Item>
+
                         <Form.Item
                           name="crud"
                           valuePropName="checked"

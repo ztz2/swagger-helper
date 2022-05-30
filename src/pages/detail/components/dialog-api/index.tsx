@@ -1,6 +1,6 @@
 import React, { FC, useState, useEffect } from 'react';
 import { IndexModelState, ConnectProps, connect } from 'umi';
-import { Select, Row, Col, Radio, Form, Input, Modal, Space, Button, message } from 'antd';
+import { Select, Row, Col, Radio, Form, Input, Modal, Space, Button, message, Checkbox } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { find, pick } from 'lodash';
 
@@ -13,7 +13,7 @@ import DialogApiEdit from '@/pages/detail/components/dialog-api-edit';
 
 
 const { Option } = Select;
-const UPDATE_FIELDS = ['baseURL', 'headText'];
+const UPDATE_FIELDS = ['semi', 'baseURL', 'headText'];
 const formItemLayout = {
   labelCol: { span: 6 },
   wrapperCol: { span: 18 },
@@ -39,6 +39,7 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
     cancelSameRequest: false,
     headText: '',
     tpl: '',
+    semi: true,
   });
 
   const init = (isFirst?: boolean, isDefaultAction?: boolean) => {
@@ -185,18 +186,6 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
                   ))}
                 </Select>
               </Form.Item>
-              <Form.Item name="onlyApi" label="只生成API">
-                <Radio.Group>
-                  <Radio value={true}>是</Radio>
-                  <Radio value={false}>否</Radio>
-                </Radio.Group>
-              </Form.Item>
-              <Form.Item name="cancelSameRequest" label="取消重复请求">
-                <Radio.Group>
-                  <Radio value={true}>是</Radio>
-                  <Radio value={false}>否</Radio>
-                </Radio.Group>
-              </Form.Item>
               {
                 !watchOnlyApi && (<>
                     <Form.Item name="headText" label="头部内容">
@@ -208,6 +197,26 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
                   </>
                 )
               }
+              <Space size={20} style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end'}}>
+                <Form.Item
+                  name="semi"
+                  valuePropName="checked"
+                >
+                  <Checkbox><span className="white-space-nowrap">分号符</span></Checkbox>
+                </Form.Item>
+                <Form.Item
+                  name="onlyApi"
+                  valuePropName="checked"
+                >
+                  <Checkbox><span className="white-space-nowrap">只生成API</span></Checkbox>
+                </Form.Item>
+                <Form.Item
+                  name="cancelSameRequest"
+                  valuePropName="checked"
+                >
+                  <Checkbox><span className="white-space-nowrap">取消重复请求</span></Checkbox>
+                </Form.Item>
+              </Space>
             </Form>
           </Col>
           <Col span={17}>

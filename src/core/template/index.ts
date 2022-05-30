@@ -29,7 +29,8 @@ export interface GenerateApiTplOptions {
   onlyApi: boolean
   cancelSameRequest: boolean
   headText: string
-  tpl: ''
+  tpl: string
+  semi: true
 }
 
 export interface GenerateReqRespTplOptions {
@@ -37,6 +38,8 @@ export interface GenerateReqRespTplOptions {
   tpl: string
   // 所选接口
   api: string
+  // 是否生成分号
+  semi: true
   // 是否生成CRUD
   crud: false,
   // 是否使用格栅布局

@@ -14,7 +14,7 @@ import { FIELD_NAMES, FILTER_REQUEST_FIELD } from '@/constants';
 import { treeFindParentNodes, treeForEach, treeToList } from '@/utils/tree';
 
 const { Option } = Select;
-const UPDATE_FIELDS = ['crud', 'grid', 'maxlength', 'placeholder', 'generateLabel'];
+const UPDATE_FIELDS = ['semi', 'crud', 'grid', 'maxlength', 'placeholder', 'generateLabel'];
 const formItemLayout = {
   labelCol: { style: { width: '156px' } },
   wrapperCol: { style: { flexGrow: 1 } },
@@ -50,6 +50,8 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
     tpl: '',
     // 所选接口
     api: '',
+    // 是否生成分号
+    semi: true,
     // 是否生成CRUD
     crud: false,
     // 是否使用格栅布局
@@ -309,6 +311,12 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
                   <Space style={{display: 'flex', flexWrap: 'wrap', marginLeft: '-10px'}}>
                     <Form.Item name="maxlength" label="输入框 maxlength 属性" style={{ margin: '0 12px 0 0' }}>
                       <InputNumber placeholder="输入框 maxlength 属性" style={{ width: 156 }} />
+                    </Form.Item>
+                    <Form.Item
+                      name="semi"
+                      valuePropName="checked"
+                    >
+                      <Checkbox><span className="white-space-nowrap">分号符</span></Checkbox>
                     </Form.Item>
                     <Form.Item
                       name="crud"
