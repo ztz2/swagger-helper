@@ -3,16 +3,16 @@ import { Empty, Tooltip, message } from 'antd';
 import { CopyOutlined } from '@ant-design/icons';
 import ClipboardJS from 'clipboard';
 import hljs from 'highlight.js';
-import 'highlight.js/styles/atom-one-dark.css';
+// import 'highlight.js/styles/atom-one-dark.css';
 import styles from './index.scss';
 
 interface CodeBoxProps {
-  code: string
-  inCollapse?: boolean
+  code: string;
+  inCollapse?: boolean;
 }
-const CodeBox: FC<CodeBoxProps> = ({code, inCollapse}) => {
+const CodeBox: FC<CodeBoxProps> = ({ code, inCollapse }) => {
   const copyBtnRef = useRef(null);
-  const [clipboard, setClipboard] = useState<ClipboardJS|null>(null);
+  const [clipboard, setClipboard] = useState<ClipboardJS | null>(null);
 
   useEffect(() => {
     return () => {
@@ -21,9 +21,9 @@ const CodeBox: FC<CodeBoxProps> = ({code, inCollapse}) => {
   }, []);
 
   useEffect(() => {
-    if (code){
+    if (code) {
       hljs.initHighlighting();
-      if(copyBtnRef?.current) {
+      if (copyBtnRef?.current) {
         const el = copyBtnRef.current;
         if (clipboard != null) {
           clipboard?.destroy?.();
@@ -37,24 +37,30 @@ const CodeBox: FC<CodeBoxProps> = ({code, inCollapse}) => {
     }
   }, [code]);
 
-  return(
+  return (
     <div className={styles.codeBoxWrap}>
-      {code
-      ?<div className={styles.codeBoxContent}>
-         <pre className={['hljs', inCollapse ? styles.codeBoxInCollapse : null].join(' ')}>
-           <code className="language-js line-numbers">
-             {code}
-          </code>
-         </pre>
+      {code ? (
+        <div className={styles.codeBoxContent}>
+          <pre
+            className={[
+              'hljs',
+              inCollapse ? styles.codeBoxInCollapse : null,
+            ].join(' ')}
+          >
+            <code className="language-js line-numbers">{code}</code>
+          </pre>
           <div className={styles.codeBoxHandle}>
             <Tooltip title="复制代码">
-              <CopyOutlined style={{fontSize: '26px'}} ref={copyBtnRef} />
+              <CopyOutlined style={{ fontSize: '26px' }} ref={copyBtnRef} />
             </Tooltip>
           </div>
-      </div>
-      :<div><Empty description="暂无数据" /></div>
-      }
+        </div>
+      ) : (
+        <div>
+          <Empty description="暂无数据" />
+        </div>
+      )}
     </div>
-  )
-}
+  );
+};
 export default CodeBox;

@@ -1,67 +1,95 @@
 import { FieldInterface, ProjectModuleInterface } from '@/core/types.ts';
 import { merge, sortBy } from 'lodash';
-import ex from 'umi/dist';
 
-const template = require('@/utils/art-template');
+import artTemplate from 'art-template';
 
-const mergeBlank = (value: any, num = 0) => Array.from({ length: num }).map(() => value).join('');
+const template = artTemplate;
+
+const mergeBlank = (value: any, num = 0) =>
+  Array.from({ length: num })
+    .map(() => value)
+    .join('');
 
 // @ts-ignore
-if (window.template == null) { window.template = template; }
+if (window.template == null) {
+  window.template = template;
+}
 template.defaults.escape = false;
 template.defaults.minimize = false;
-template.defaults.imports.generateEntityField = (field: FieldInterface, options: any, num: number) => {
+template.defaults.imports.generateEntityField = (
+  field: FieldInterface,
+  options: any,
+  num: number,
+) => {
   const gap = '  ';
   const tpl = `<% if (field.type==='array') { %>[<% } %>{
-{{each field.children}}{{if $value.label || $value.typeValue}}${mergeBlank(gap, num + 1)}// {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n{{/if}}${mergeBlank(gap, num + 1)}{{$value.key}}: {{if $value.type === 'object' || $value.type === 'array'}}<%= $imports.generateEntityField($value, options, ${num + 1}) %>{{else if $value.type !== 'object' || $value.type !== 'array'}}{{$value.defaultValue}}{{else}}null{{/if}}{{if $index < field.children.length-1}},\n{{/if}}{{/each}}
+{{each field.children}}{{if $value.label || $value.typeValue}}${mergeBlank(
+    gap,
+    num + 1,
+  )}// {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n{{/if}}${mergeBlank(
+    gap,
+    num + 1,
+  )}{{$value.key}}: {{if $value.type === 'object' || $value.type === 'array'}}<%= $imports.generateEntityField($value, options, ${
+    num + 1
+  }) %>{{else if $value.type !== 'object' || $value.type !== 'array'}}{{$value.defaultValue}}{{else}}null{{/if}}{{if $index < field.children.length-1}},\n{{/if}}{{/each}}
 ${mergeBlank(gap, num)}}<% if (field.type==='array') { %>]<% } %>`;
   if (field.type === 'object' && field.children.length === 0) {
     return '{}';
   }
-  if (field.type === 'array' && (field.childType || field.children.length === 0)) {
+  if (
+    field.type === 'array' &&
+    (field.childType || field.children.length === 0)
+  ) {
     return '[]';
   }
   return template.render(tpl, { field, options });
 };
 
 export interface GenerateApiTplOptions {
-  baseURL: string
-  onlyApi: boolean
-  cancelSameRequest: boolean
-  headText: string
-  tpl: string
-  semi: true
+  baseURL: string;
+  onlyApi: boolean;
+  cancelSameRequest: boolean;
+  headText: string;
+  tpl: string;
+  semi: true;
 }
 
 export interface GenerateReqRespTplOptions {
   // 所选模板
-  tpl: string
+  tpl: string;
   // 所选接口
-  api: string
+  api: string;
   // 是否生成分号
-  semi: true
+  semi: true;
   // 是否生成CRUD
-  crud: false,
+  crud: false;
   // 是否使用格栅布局
-  grid: false,
+  grid: false;
   // 输入框属性
-  maxlength: number,
+  maxlength: number;
   // 输入框是否生成placeholder
-  placeholder: false,
+  placeholder: false;
   // 表单是否生成label
-  generateLabel: false,
+  generateLabel: false;
 }
 
 // 表格模板
-export const generateTableTpl = (requests: Array<FieldInterface> = [], responses: Array<FieldInterface> = [], options?: {curd: boolean}) => {
+export const generateTableTpl = (
+  requests: Array<FieldInterface> = [],
+  responses: Array<FieldInterface> = [],
+  options?: { curd: boolean },
+) => {
   // @ts-ignore
-  options = merge({
-    crud: false,
-    grid: false,
-    maxlength: 100,
-    placeholder: false,
-    generateLabel: false,
-  }, options ?? {});
+  options = merge(
+    {
+      crud: false,
+      grid: false,
+      maxlength: 100,
+      placeholder: false,
+      generateLabel: false,
+    },
+    options ?? {},
+  );
   const tpl = `<template>
   <div class="app-container">
     <NrTable
@@ -166,13 +194,19 @@ export default {
 };
 
 // 实体类模板
-export const generateEntityTpl = (requests: Array<FieldInterface> = [], options: {grid: boolean}) => {
+export const generateEntityTpl = (
+  requests: Array<FieldInterface> = [],
+  options: { grid: boolean },
+) => {
   // @ts-ignore
-  options = merge({
-    grid: false,
-    maxlength: 100,
-    placeholder: false,
-  }, options ?? {});
+  options = merge(
+    {
+      grid: false,
+      maxlength: 100,
+      placeholder: false,
+    },
+    options ?? {},
+  );
   const tpl = `<template>
   <el-form
     :rules="rules"
@@ -262,7 +296,10 @@ export default {
 };
 
 // 实体类字段
-export const generateEntityField = (fieldList: Array<FieldInterface>, options = {}) => {
+export const generateEntityField = (
+  fieldList: Array<FieldInterface>,
+  options = {},
+) => {
   const tpl = `<% if (fieldList.length > 0) { %>{
 {{each fieldList}}{{if $value.label || $value.typeValue}}  // {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n{{/if}}  {{$value.key}}: {{if $value.type === 'object' || $value.type === 'array'}}<%= $imports.generateEntityField($value, options, 1) %>{{else if $value.type !== 'object' || $value.type !== 'array'}}{{$value.defaultValue}}{{else}}null{{/if}}{{if $index < fieldList.length-1}},\n{{/if}}{{/each}}
 }<% } %>`;

@@ -16,24 +16,34 @@ import { message } from 'antd';
 import _, { cloneDeep } from 'lodash';
 import { listToTree, treeToList } from '@/utils/tree';
 
-const template = require('@/utils/art-template');
+import artTemplate from 'art-template';
+
+const template = artTemplate;
 // @ts-ignore
-if (window.template == null) { window.template = template; }
+if (window.template == null) {
+  window.template = template;
+}
 template.defaults.escape = false;
 template.defaults.minimize = false;
 
 export class Tpl {
   // 模板的唯一ID
-  uid = uuidv4()
+  uid = uuidv4();
   // 模板名称
-  name = ''
+  name = '';
   // 模板类型(小于0: 代表系统内置 , 大于0: 代表自定义)
-  type = 1
+  type = 1;
   // 模板内容
-  value = ''
+  value = '';
   // 默认模板
-  isDefault = false
-  constructor(name = '', value = '', type = 1, isDefault = false, uid = uuidv4()) {
+  isDefault = false;
+  constructor(
+    name = '',
+    value = '',
+    type = 1,
+    isDefault = false,
+    uid = uuidv4(),
+  ) {
     this.name = name;
     this.value = value;
     this.type = type;
@@ -42,19 +52,27 @@ export class Tpl {
   }
 }
 
-
 const filterType = (type = ''): string => {
   switch (type) {
-    case 'integer': case 'int': case 'float': case 'double':
+    case 'integer':
+    case 'int':
+    case 'float':
+    case 'double':
       return 'number';
     default:
       return type;
   }
 };
 
-export const generateRequestMethodNameByUrl = (url = '', method: string, num = 1): string => {
-  const urlPath = (url.replace(/\/\{.*?\}/gim, '')).split('/');
-  const lastUrlPath = urlPath.slice(urlPath.length - num, urlPath.length).join(' ');
+export const generateRequestMethodNameByUrl = (
+  url = '',
+  method: string,
+  num = 1,
+): string => {
+  const urlPath = url.replace(/\/\{.*?\}/gim, '').split('/');
+  const lastUrlPath = urlPath
+    .slice(urlPath.length - num, urlPath.length)
+    .join(' ');
   if (lastUrlPath) {
     if (method) {
       return camelCase(`${method} ${lastUrlPath}`);
@@ -72,7 +90,8 @@ const getDefaultValue = (field: FieldInterface) => {
     let text = typeof field.example === 'number' ? field.example : null;
     if (!text && field.label) {
       const rex = /[0-9]/.exec(field.label);
-      if (rex && !Number.isNaN(Number.parseFloat(rex[0]))) { // @ts-ignore
+      if (rex && !Number.isNaN(Number.parseFloat(rex[0]))) {
+        // @ts-ignore
         text = Number.parseFloat(rex[0]);
       }
       if (typeof text === 'number') {
@@ -80,7 +99,7 @@ const getDefaultValue = (field: FieldInterface) => {
       }
     }
   } else if (type === 'string') {
-    result = '\'\'';
+    result = "''";
   } else if (type === 'boolean') {
     result = typeof field.example === 'boolean' ? field.example : false;
   } else if (type === 'object') {
@@ -91,18 +110,22 @@ const getDefaultValue = (field: FieldInterface) => {
   return result;
 };
 
-const schemaToTree = (schema: SchemaInterface, parentUid: string | null = null): Array<FieldInterface> => {
+const schemaToTree = (
+  schema: SchemaInterface,
+  parentUid: string | null = null,
+): Array<FieldInterface> => {
   let items: any;
-  const _schemaToTree = (schema: SchemaInterface, parentUid: string | null = null, memo: Array<object>): Array<FieldInterface> => {
+  const _schemaToTree = (
+    schema: SchemaInterface,
+    parentUid: string | null = null,
+    memo: Array<object>,
+  ): Array<FieldInterface> => {
     const result: Array<FieldInterface> = [];
     if (!schema || memo.includes(schema)) {
       return result;
     }
     memo.push(schema);
-    let {
-      properties = {},
-      required = [],
-    } = schema;
+    let { properties = {}, required = [] } = schema;
     if (schema.type === 'array') {
       // @ts-ignore
       properties = schema.items.properties ?? {};
@@ -156,7 +179,8 @@ const schemaToTree = (schema: SchemaInterface, parentUid: string | null = null):
 const parametersToTree = (parameters: Array<ParameterInterface> = []) => {
   const result: Array<FieldInterface> = [];
   parameters.forEach((value) => {
-    if (value.in === 'body') { // @ts-ignore
+    if (value.in === 'body') {
+      // @ts-ignore
       [].push.apply(result, schemaToTree(value.schema));
     } else {
       const field = new Field();
@@ -225,9 +249,12 @@ export const convertSwaggerData = (apiSource: any): any => {
         // @ts-ignore
         projectModule.apiList.push(nowApi);
         // @ts-ignore
-        const responsesSchema = isV3 ? api?.responses['200']?.content?.['application/json']?.schema : api?.responses['200']?.schema;
+        const responsesSchema = isV3
+          ? api?.responses['200']?.content?.['application/json']?.schema
+          : api?.responses['200']?.schema;
         // @ts-ignore
-        if (api?.consumes?.[0]) { // @ts-ignore
+        if (api?.consumes?.[0]) {
+          // @ts-ignore
           nowApi.requestContentType = api.consumes[0];
         }
         // schemaToTree
@@ -245,8 +272,13 @@ export const convertSwaggerData = (apiSource: any): any => {
         nowApi.methodUrl = path.replace(/\{/gim, '${data.');
         // 避免重复名称
         if (recordMethodName.has(nowApi.methodName)) {
-          recordMethodName.set(nowApi.methodName, recordMethodName.get(nowApi.methodName) + 1);
-          nowApi.methodName = `${nowApi.methodName}${recordMethodName.get(nowApi.methodName)}`;
+          recordMethodName.set(
+            nowApi.methodName,
+            recordMethodName.get(nowApi.methodName) + 1,
+          );
+          nowApi.methodName = `${nowApi.methodName}${recordMethodName.get(
+            nowApi.methodName,
+          )}`;
         } else {
           recordMethodName.set(nowApi.methodName, 0);
         }
@@ -256,7 +288,7 @@ export const convertSwaggerData = (apiSource: any): any => {
           // @ts-ignore
           [].push.apply(nowApi.requests, parametersToTree(api.parameters));
           if (nowApi.requests.length > 0) {
-            let countQM = 0;// @ts-ignore
+            let countQM = 0; // @ts-ignore
             api.parameters.forEach((t: any) => {
               if (t.in === 'path' || t.in === 'query') {
                 countQM++;
@@ -271,7 +303,8 @@ export const convertSwaggerData = (apiSource: any): any => {
         // 请求参数【requestBody】
         if (isV3) {
           // @ts-ignore
-          const requestSchema = api.requestBody?.content?.['application/json']?.schema;
+          const requestSchema =
+            api.requestBody?.content?.['application/json']?.schema;
           if (requestSchema) {
             // @ts-ignore
             [].push.apply(nowApi.requests, schemaToTree(requestSchema));
@@ -286,37 +319,43 @@ export const convertSwaggerData = (apiSource: any): any => {
 };
 
 export const swaggerParser = async (param: Project, showErrorMsg = true) => {
-  const data = await getSwagger(param);
-  // @ts-ignore
-  window.swaggerVersion = data.swagger ?? data.openapi;
-  const api = await new SwaggerParser().dereference(data);
-  if (!api?.swagger && !api.openapi) {
-    const errText = 'Swagger配置文件错误';
-    showErrorMsg && message.error(errText);
-    throw Error(errText);
-  }
-  const modules = convertSwaggerData(api);
-  if (modules.length === 0) {
-    const errText = '没有模块可以生成';
-    showErrorMsg && message.error(errText)
-    throw Error(errText);
-  }
-  let baseURL = '';
-  const result = Object.assign({}, new Project(), param);
-  result.modules = modules;
-  result.label = api.info.title;
-  if (api?.openapi?.startsWith('3.')) {
-    if (api?.servers?.length > 0) {
-      baseURL = (api.servers[0].url ? `'${api.servers[0].url}'` : '')
+  const result = [];
+  const list = await getSwagger(param);
+  for (const data of list) {
+    // @ts-ignore
+    window.swaggerVersion = data.swagger ?? data.openapi;
+    const api = await new SwaggerParser().dereference(data);
+    if (!api?.swagger && !api.openapi) {
+      const errText = 'Swagger配置文件错误';
+      showErrorMsg && message.error(errText);
+      throw Error(errText);
     }
-  } else {
-    baseURL = (api.basePath ? `'${api.basePath}'` : '')
+    const modules = convertSwaggerData(api);
+    if (modules.length === 0) {
+      const errText = '没有模块可以生成';
+      showErrorMsg && message.error(errText);
+      throw Error(errText);
+    }
+    let baseURL = '';
+    const entity = Object.assign({}, new Project(), param);
+    entity.modules = modules;
+    entity.label = api.label;
+    entity.url = api.url;
+    if (api?.openapi?.startsWith('3.')) {
+      if (api?.servers?.length > 0) {
+        baseURL = api.servers[0].url ? `'${api.servers[0].url}'` : '';
+      }
+    } else {
+      baseURL = api.basePath ? `'${api.basePath}'` : '';
+    }
+    entity.baseURL = baseURL;
+    result.push(entity);
   }
-  result.baseURL = baseURL;
-  return result;
-}
 
-export const generateTpl = function(tpl: string, ...params: Array<any>) {
+  return result;
+};
+
+export const generateTpl = function (tpl: string, ...params: Array<any>) {
   let result: Array<string> = [];
   const success = params[params.length - 1];
   if (typeof success === 'function') {
@@ -325,7 +364,10 @@ export const generateTpl = function(tpl: string, ...params: Array<any>) {
   try {
     const lodash = _;
     const exe = { renderTpl: null };
-    eval(tpl + `\nexe.renderTpl = typeof renderTpl === 'function' ? renderTpl : null`);
+    eval(
+      tpl +
+        `\nexe.renderTpl = typeof renderTpl === 'function' ? renderTpl : null`,
+    );
     if (typeof exe.renderTpl !== 'function') {
       throw Error('模板中缺少 renderTpl 函数');
     }
@@ -335,7 +377,7 @@ export const generateTpl = function(tpl: string, ...params: Array<any>) {
       throw Error('renderTpl 函数返回值数据类型为： Array<string>');
     }
     if (result.length === 0) {
-      result = ['没有可以生成的模板']
+      result = ['没有可以生成的模板'];
     } else if (typeof result[0] !== 'string') {
       throw Error('renderTpl 函数返回值数据类型为： Array<string>');
     }
@@ -352,14 +394,19 @@ export const generateTpl = function(tpl: string, ...params: Array<any>) {
     }
   }
   return result;
-}
+};
 
-export const processFieldTree = (source:Array<FieldInterface>, value:Array<FieldInterface>) => {
+export const processFieldTree = (
+  source: Array<FieldInterface>,
+  value: Array<FieldInterface>,
+) => {
   if (value.length <= 1) {
     return value;
   }
   const memo = {}; // @ts-ignore
-  treeToList(cloneDeep(source)).forEach((t) => { memo[t.uid] = t });
+  treeToList(cloneDeep(source)).forEach((t) => {
+    memo[t.uid] = t;
+  });
   const res = [];
   const parents = {};
   const uidList = new Set();
@@ -401,11 +448,12 @@ export const processFieldTree = (source:Array<FieldInterface>, value:Array<Field
   if (removeCount) {
     for (const [k, v] of Object.entries(parents)) {
       // @ts-ignore
-      v.splice(v.length - removeCount, v.length);v.forEach((uid) => uidList.add(uid));
+      v.splice(v.length - removeCount, v.length);
+      v.forEach((uid) => uidList.add(uid));
     }
   }
   uidList.forEach((uid: string) => {
-    res.push(memo[uid])
+    res.push(memo[uid]);
   });
   return listToTree(res, { id: 'uid', pid: 'parentUid' });
 };
