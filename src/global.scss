@@ -28,6 +28,9 @@ textarea.ant-input{
   transform: translateY(100%);
   font-size: 12px;
 }
+.word-break-all, .text-break-all{
+  word-break: break-all;
+}
 
 .tpl-dialog{
   top: 40px!important;

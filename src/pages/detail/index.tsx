@@ -62,6 +62,7 @@ const DetailPage: FC<DetailPageProps> = ({
     swaggerParser(s)
       .then((list: Array<Project>) => {
         if (list.length === 0) {
+          setIsEmpty(true);
           return message.error(
             '没有获取到配置文件，请检查Swagger文档地址是否正确？',
           );
