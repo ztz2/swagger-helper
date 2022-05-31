@@ -30,7 +30,7 @@ textarea.ant-input{
 }
 
 .tpl-dialog{
-  top: 40px;
+  top: 40px!important;
   .ant-modal-body{
     > .ant-row{
       height: calc(100vh - 234px);
@@ -55,7 +55,7 @@ textarea.ant-input{
   }
 }
 .tpl-edit-dialog{
-  top: 18px;
+  top: 18px!important;
   padding-bottom: 0;
   .ant-modal-body{
     >.ant-row{
@@ -149,7 +149,7 @@ textarea.ant-input{
 }
 
 .dialog-req-resp-edit{
-  top: 18px;
+  top: 18px!important;
   padding-bottom: 0;
   .ant-modal-body{
     > .ant-row{
@@ -251,7 +251,7 @@ textarea.ant-input{
 
 
 .dialog-api-edit{
-  top: 18px;
+  top: 18px!important;
   padding-bottom: 0;
   .ant-modal-body{
     > .ant-row{
