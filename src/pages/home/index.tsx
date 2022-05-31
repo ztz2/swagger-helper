@@ -173,12 +173,12 @@ const HomePage: FC<HomePageProps> = ({ swagger, dispatch }) => {
                   <div className="word-break-all">
                     <div>方式一：输入Swagger文档URL地址即可</div>
                     <div style={{ marginTop: 10 }}>
-                      方式二：浏览器访问Swagger文档，按F12打开控制台-&gt;网络，查看AJAX请求，找到请求路径以
+                      方式二：浏览器访问Swagger文档，按F12打开控制台-&gt;网络，查看Ajax请求，找到路径以
                       api-docs
-                      为后缀的请求，它就是Swagger配置文件资源访问请求，复制改地址到这里即可。Swagger配置文件请求例子：https://domain.com/project/v2/api-docs
+                      为后缀的请求，复制该请求到这里即可。Swagger配置Ajax请求例子：https://domain.com/project/v2/api-docs
                     </div>
                     <div style={{ marginTop: 10 }}>
-                      注意：如果Swagger文档在局域网(本地)，请配置内网穿透，或者部署到公网服务器，之后在进行添加操作。
+                      注意：如果Swagger文档在局域网(本地)，请配置内网穿透，或者部署到公网服务器之后在进行添加操作。
                     </div>
                   </div>
                 </>
