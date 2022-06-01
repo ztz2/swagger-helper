@@ -3,7 +3,7 @@ import { Empty, Tooltip, message } from 'antd';
 import { CopyOutlined } from '@ant-design/icons';
 import ClipboardJS from 'clipboard';
 import hljs from 'highlight.js';
-// import 'highlight.js/styles/atom-one-dark.css';
+
 import styles from './index.scss';
 
 interface CodeBoxProps {

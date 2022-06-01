@@ -1,5 +1,6 @@
+import { find } from 'lodash';
 import React, { FC, useState, useEffect, useRef } from 'react';
-import { IndexModelState, ConnectProps, connect, useParams } from 'umi';
+import { connect, useParams, ConnectProps, IndexModelState } from 'umi';
 import {
   Tooltip,
   Result,
@@ -16,16 +17,15 @@ import {
 } from 'antd';
 import { SmileOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 
-import { ApiInterface, Project, ProjectOptions } from '@/core/types';
 import { Tpl, generateTpl, swaggerParser } from '@/core';
-import CodeBox from '@/components/code-box';
-import Tree from './components/tree/index';
-import DialogApi from './components/dialog-api';
-import styles from './index.scss';
 import { copyToClipboard } from '@/utils';
-import DialogReqResp from '@/pages/detail/components/dialog-req-resp';
+import Tree from './components/tree/index';
+import CodeBox from '@/components/code-box';
+import DialogApi from './components/dialog-api';
+import { ApiInterface, Project } from '@/core/types';
 import { REQ_RESP_TPL6000 } from '@/constants/tpl/req-resp';
-import { find } from 'lodash';
+import DialogReqResp from '@/pages/detail/components/dialog-req-resp';
+import styles from './index.scss';
 
 const { Panel } = Collapse;
 const { TextArea } = Input;

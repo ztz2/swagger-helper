@@ -1,5 +1,5 @@
-import { FieldInterface, ProjectModuleInterface } from '@/core/types.ts';
-import { merge, sortBy } from 'lodash';
+import { FieldInterface } from '@/core/types.ts';
+import { merge } from 'lodash';
 
 import artTemplate from 'art-template';
 
@@ -44,25 +44,6 @@ ${mergeBlank(gap, num)}}<% if (field.type==='array') { %>]<% } %>`;
   }
   return template.render(tpl, { field, options });
 };
-
-export interface GenerateReqRespTplOptions {
-  // 所选模板
-  tpl: string;
-  // 所选接口
-  api: string;
-  // 是否生成分号
-  semi: true;
-  // 是否生成CRUD
-  crud: false;
-  // 是否使用格栅布局
-  grid: false;
-  // 输入框属性
-  maxlength: number;
-  // 输入框是否生成placeholder
-  placeholder: false;
-  // 表单是否生成label
-  generateLabel: false;
-}
 
 // 表格模板
 export const generateTableTpl = (

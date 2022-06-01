@@ -1,6 +1,6 @@
-import { Effect, ImmerReducer, Reducer, Subscription } from 'umi';
+import { Effect, Reducer, Subscription } from 'umi';
 import { Project, ProjectInterface } from '@/core/types';
-import { cloneDeep, findIndex, pick } from 'lodash';
+import { cloneDeep, findIndex } from 'lodash';
 
 export interface SwaggerModelState {
   list: Array<ProjectInterface>;

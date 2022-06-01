@@ -14,22 +14,21 @@ import {
   InputNumber,
 } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
-import { cloneDeep, find, pick } from 'lodash';
+import { cloneDeep, find } from 'lodash';
 
-import { Tpl, generateTpl, processFieldTree } from '@/core';
-import CodeBox from '@/components/code-box';
-import { REQ_RESP_TPL_DEMO1 } from '@/constants/tpl/req-resp';
+import { Tpl, getCopyName, generateTpl, processFieldTree } from '@/core';
 import {
   ApiInterface,
   FieldInterface,
   Project,
   ProjectOptions,
 } from '@/core/types';
-import { GenerateReqRespTplOptions } from '@/core/template';
-import DialogReqRespEdit from '@/pages/detail/components/dialog-req-resp-edit';
+import { checkType } from '@/utils';
+import CodeBox from '@/components/code-box';
+import { REQ_RESP_TPL_DEMO1 } from '@/constants/tpl/req-resp';
 import { FIELD_NAMES, FILTER_REQUEST_FIELD } from '@/constants';
 import { treeFindParentNodes, treeForEach, treeToList } from '@/utils/tree';
-import { checkType } from '@/utils';
+import DialogReqRespEdit from '@/pages/detail/components/dialog-req-resp-edit';
 
 const { Option } = Select;
 const UPDATE_FIELDS = [
@@ -253,7 +252,7 @@ const DialogReqResp: FC<DialogReqRespProps> = ({
             type: 1,
             uid: null,
           });
-          copyTpl.name += '- 副本';
+          copyTpl.name = getCopyName(copyTpl.name);
           setVisibleDialogTplEdit(true);
           setEditTpl(copyTpl);
         },
@@ -286,11 +285,13 @@ const DialogReqResp: FC<DialogReqRespProps> = ({
         options={options}
         tplEntity={editTpl}
         visible={visibleDialogTplEdit}
-        onAdd={(entity: Tpl) => {
+        onSave={(entity: Tpl) => {
+          setTimeout(() => {
+            onFinish(o, true);
+          }, 250);
           const o = { ...options, tplUid: entity.uid };
           setOptions(o);
           formRef.setFieldsValue({ tplUid: entity.uid });
-          onFinish(o, true);
         }}
         onDelete={handleDel}
         onChangeVisible={(v, isDelete) => {

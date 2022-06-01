@@ -26,7 +26,6 @@ import CodeBox from '@/components/code-box';
 import { ApiInterface, FieldInterface } from '@/core/types';
 import { FIELD_NAMES, FILTER_REQUEST_FIELD } from '@/constants';
 import { getMockApiData } from '@/constants/tpl/req-resp';
-
 import { treeFindParentNodes, treeForEach, treeToList } from '@/utils/tree';
 
 const formItemLayout = {
@@ -39,7 +38,7 @@ interface DialogReqRespEditProps extends ConnectProps {
   options: {
     [propName: string]: any;
   };
-  onAdd?(entity: Tpl): void;
+  onSave?(entity: Tpl): void;
   onDelete?(entity: Tpl): void;
   onChangeVisible(v: boolean, isDelete?: boolean): void;
 }
@@ -47,7 +46,7 @@ const DialogReqRespEdit: FC<DialogReqRespEditProps> = ({
   visible,
   options,
   tplEntity,
-  onAdd,
+  onSave,
   onDelete,
   onChangeVisible,
   dispatch,
@@ -189,8 +188,8 @@ const DialogReqRespEdit: FC<DialogReqRespEditProps> = ({
         type: 'tpl/add',
         payload: { value: data, type: 'reqResp' },
       });
-      onAdd?.(data);
     }
+    onSave?.(data);
     message.success('操作成功');
     onChangeVisible(false);
   };

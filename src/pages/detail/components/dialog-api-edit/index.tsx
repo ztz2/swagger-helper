@@ -27,7 +27,7 @@ interface DialogApiEditProps extends ConnectProps {
   options: {
     [propName: string]: any;
   };
-  onAdd?(entity: Tpl): void;
+  onSave?(entity: Tpl): void;
   onDelete?(entity: Tpl): void;
   onChangeVisible(v: boolean, isDelete?: boolean): void;
 }
@@ -35,7 +35,7 @@ const DialogApiEdit: FC<DialogApiEditProps> = ({
   visible,
   options,
   tplEntity,
-  onAdd,
+  onSave,
   onDelete,
   onChangeVisible,
   dispatch,
@@ -88,8 +88,8 @@ const DialogApiEdit: FC<DialogApiEditProps> = ({
     } else {
       data.uid = uuidv4();
       dispatch?.({ type: 'tpl/add', payload: { value: data, type: 'api' } });
-      onAdd?.(data);
     }
+    onSave?.(data);
     message.success('操作成功');
     onChangeVisible(false);
   };

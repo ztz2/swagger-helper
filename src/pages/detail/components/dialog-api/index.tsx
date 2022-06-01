@@ -1,5 +1,5 @@
-import React, { FC, useState, useEffect } from 'react';
 import { find } from 'lodash';
+import React, { FC, useState, useEffect } from 'react';
 import { IndexModelState, ConnectProps, connect } from 'umi';
 import {
   Select,
@@ -15,12 +15,12 @@ import {
 } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 
-import { Tpl, generateTpl } from '@/core';
+import { checkType } from '@/utils';
 import CodeBox from '@/components/code-box';
 import { API_TPL_DEMO1 } from '@/constants/tpl/api';
+import { Tpl, generateTpl, getCopyName } from '@/core';
 import { ApiInterface, Project, ProjectOptions } from '@/core/types';
 import DialogApiEdit from '@/pages/detail/components/dialog-api-edit';
-import { checkType } from '@/utils';
 
 const { Option } = Select;
 const formItemLayout = {
@@ -140,7 +140,7 @@ const DialogApi: FC<DialogApiProps> = ({
             type: 1,
             uid: null,
           });
-          copyTpl.name += '- 副本';
+          copyTpl.name = getCopyName(copyTpl.name);
           setVisibleDialogTplEdit(true);
           setEditTpl(copyTpl);
         },
@@ -157,11 +157,13 @@ const DialogApi: FC<DialogApiProps> = ({
         options={options}
         tplEntity={editTpl}
         visible={visibleDialogTplEdit}
-        onAdd={(entity: Tpl) => {
+        onSave={(entity: Tpl) => {
+          setTimeout(() => {
+            onFinish(o, true);
+          }, 250);
           const o = { ...options, tplUid: entity.uid };
           setOptions(o);
           formRef.setFieldsValue({ tplUid: entity.uid });
-          onFinish(o, true);
         }}
         onDelete={handleDel}
         onChangeVisible={(v, isDelete) => {

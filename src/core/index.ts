@@ -10,12 +10,12 @@ import {
   ParameterInterface,
   ProjectModuleInterface,
 } from '@/core/types.ts';
-import { getSwagger } from '@/api';
-import SwaggerParser from '@apidevtools/swagger-parser';
 import { message } from 'antd';
 import _, { cloneDeep } from 'lodash';
 import { listToTree, treeToList } from '@/utils/tree';
+import SwaggerParser from '@apidevtools/swagger-parser';
 
+import { getSwagger } from '@/api';
 import artTemplate from 'art-template';
 
 const template = artTemplate;
@@ -454,4 +454,9 @@ export const processFieldTree = (
     res.push(memo[uid]);
   });
   return listToTree(res, { id: 'uid', pid: 'parentUid' });
+};
+
+export const getCopyName = (sourceName = '') => {
+  const rex = /^内置\((.*)\)/.exec(sourceName);
+  return (rex?.[1] ?? sourceName) + ' - 副本';
 };

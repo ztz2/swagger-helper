@@ -1,5 +1,5 @@
 import React, { FC, useState } from 'react';
-import { IndexModelState, ConnectProps, Loading, connect, Link } from 'umi';
+import { IndexModelState, ConnectProps, connect, Link } from 'umi';
 import {
   notification,
   Alert,
