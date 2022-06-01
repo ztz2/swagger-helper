@@ -16,7 +16,7 @@ import {
   ExclamationCircleOutlined,
   CheckCircleOutlined,
 } from '@ant-design/icons';
-import { merge, pick } from 'lodash';
+import { pick } from 'lodash';
 import { Project } from '@/core/types';
 import { swaggerParser } from '@/core';
 
@@ -61,7 +61,6 @@ const HomePage: FC<HomePageProps> = ({ swagger, dispatch }) => {
       ),
     },
   ]);
-
   // 添加模态框，点击确定按钮
   const handleSubmit = () => {
     addFormRef
@@ -79,7 +78,9 @@ const HomePage: FC<HomePageProps> = ({ swagger, dispatch }) => {
           successText.push(data.label);
           dispatch?.({
             type: 'swagger/add',
-            payload: merge(new Project(), values, pick(data, ['label', 'url'])),
+            payload: new Project(
+              Object.assign({}, values, pick(data, ['label', 'url'])),
+            ),
           });
         }
         notification.open({
@@ -143,7 +144,7 @@ const HomePage: FC<HomePageProps> = ({ swagger, dispatch }) => {
           </Space>
         </div>
 
-        <Table columns={columns} dataSource={swagger.list} />
+        <Table columns={columns} dataSource={swagger.list} rowKey="uid" />
 
         {/*添加功能模态框 -- 开始*/}
         <Modal

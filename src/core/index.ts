@@ -19,10 +19,6 @@ import { listToTree, treeToList } from '@/utils/tree';
 import artTemplate from 'art-template';
 
 const template = artTemplate;
-// @ts-ignore
-if (window.template == null) {
-  window.template = template;
-}
 template.defaults.escape = false;
 template.defaults.minimize = false;
 
@@ -336,19 +332,21 @@ export const swaggerParser = async (param: Project, showErrorMsg = true) => {
       showErrorMsg && message.error(errText);
       throw Error(errText);
     }
-    let baseURL = '';
-    const entity = Object.assign({}, new Project(), param);
+    const entity = new Project(Object.assign({}, param));
     entity.modules = modules;
     entity.label = api.label;
     entity.url = api.url;
-    if (api?.openapi?.startsWith('3.')) {
-      if (api?.servers?.length > 0) {
-        baseURL = api.servers[0].url ? `'${api.servers[0].url}'` : '';
+    if (!entity.options.baseURL) {
+      let baseURL = '';
+      if (api?.openapi?.startsWith('3.')) {
+        if (api?.servers?.length > 0) {
+          baseURL = api.servers[0].url ? `'${api.servers[0].url}'` : '';
+        }
+      } else {
+        baseURL = api.basePath ? `'${api.basePath}'` : '';
       }
-    } else {
-      baseURL = api.basePath ? `'${api.basePath}'` : '';
+      entity.options.baseURL = baseURL;
     }
-    entity.baseURL = baseURL;
     result.push(entity);
   }
 

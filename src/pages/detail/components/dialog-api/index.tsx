@@ -1,72 +1,84 @@
 import React, { FC, useState, useEffect } from 'react';
+import { find } from 'lodash';
 import { IndexModelState, ConnectProps, connect } from 'umi';
-import { Select, Row, Col, Radio, Form, Input, Modal, Space, Button, message, Checkbox } from 'antd';
+import {
+  Select,
+  Row,
+  Col,
+  Form,
+  Input,
+  Modal,
+  Space,
+  Button,
+  message,
+  Checkbox,
+} from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
-import { find, pick } from 'lodash';
 
 import { Tpl, generateTpl } from '@/core';
 import CodeBox from '@/components/code-box';
 import { API_TPL_DEMO1 } from '@/constants/tpl/api';
-import { ApiInterface, Project } from '@/core/types';
-import { GenerateApiTplOptions } from '@/core/template';
+import { ApiInterface, Project, ProjectOptions } from '@/core/types';
 import DialogApiEdit from '@/pages/detail/components/dialog-api-edit';
-
+import { checkType } from '@/utils';
 
 const { Option } = Select;
-const UPDATE_FIELDS = ['semi', 'baseURL', 'headText'];
 const formItemLayout = {
-  labelCol: { span: 6 },
-  wrapperCol: { span: 18 },
+  labelCol: { style: { width: '84px' } },
 };
 
-interface DialogApiProps extends ConnectProps {
-  project: Project
-  items: Array<ApiInterface>
-  visible: boolean
-  onChangeVisible(v: boolean): void
+class DialogApiOptions extends ProjectOptions {
+  tplUid = '';
 }
-const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible, apiTplList, dispatch}) => {
+interface DialogApiProps extends ConnectProps {
+  project: Project;
+  items: Array<ApiInterface>;
+  visible: boolean;
+  onChangeVisible(v: boolean): void;
+}
+const DialogApi: FC<DialogApiProps> = ({
+  project,
+  items,
+  visible,
+  onChangeVisible,
+  apiTplList,
+  dispatch,
+}) => {
   const [formRef] = Form.useForm();
-  const watchTpl = Form.useWatch('tpl', formRef);
+  const watchTplUid = Form.useWatch('tplUid', formRef);
   const watchOnlyApi = Form.useWatch('onlyApi', formRef);
   const [visibleDialogTplEdit, setVisibleDialogTplEdit] = useState(false);
   const [tplCodeList, setTplCodeList] = useState<Array<string>>([]);
   const [editTpl, setEditTpl] = useState<Tpl>(new Tpl());
 
-  const [options, setOptions] = useState<GenerateApiTplOptions>({
-    baseURL: '',
-    onlyApi: false,
-    cancelSameRequest: false,
-    headText: '',
-    tpl: '',
-    semi: true,
-  });
+  const [options, setOptions] = useState<DialogApiOptions>(
+    new DialogApiOptions(),
+  );
 
-  const init = (isFirst?: boolean, isDefaultAction?: boolean) => {
-    let d = apiTplList.find((t: Tpl) => t.isDefault);
-    d = d ?? apiTplList[0];
-    const defaultUid = d.uid;
-    for (const key in options) {
-      if (project.hasOwnProperty(key)) {
-        // @ts-ignore
-        options[key] = project[key];
-      }
-    }
-    if (isFirst && defaultUid) {
-      formRef.setFieldsValue({ tpl: defaultUid });
-      setOptions({...options, tpl: defaultUid});
-    }
-    formRef.setFieldsValue(options);
-    onFinish(options, isDefaultAction);
-  };
-
-  useEffect(() => { init(true, true); }, [])
-
+  // Mounted - 设置默认选中的API
   useEffect(() => {
-    if (visible && formRef) {
-      init(false, true);
+    resetOptions();
+  }, []);
+
+  // 项目变化之后，恢复表单数据
+  useEffect(() => {
+    resetOptions();
+  }, [project]);
+
+  // 弹窗状态变化
+  useEffect(() => {
+    if (visible) {
+      onFinish(null, true);
     }
   }, [visible]);
+
+  const resetOptions = () => {
+    const defaultAPI = apiTplList.find((t: Tpl) => t.isDefault);
+    const defaultUid = defaultAPI ? defaultAPI.uid : apiTplList?.[0]?.uid ?? '';
+    const o = { ...options, ...(project?.options ?? {}), tplUid: defaultUid };
+    setOptions(o);
+    formRef?.setFieldsValue?.(o);
+  };
 
   const handleAdd = () => {
     const entity = new Tpl();
@@ -76,18 +88,21 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
     setVisibleDialogTplEdit(true);
   };
 
-  const onFinish = (values: GenerateApiTplOptions, isDefaultAction?: boolean) => {
-    const tplEntity = apiTplList.find((t: Tpl) => t.uid === values.tpl);
-    if (!tplEntity) {
-      return
+  const onFinish = (
+    values?: DialogApiOptions | null,
+    formVisible?: boolean,
+  ) => {
+    const o = checkType(values, 'Object') ? values : options;
+    const tplEntity = apiTplList.find((t: Tpl) => t.uid === o?.tplUid);
+    if (tplEntity) {
+      setTplCodeList(
+        generateTpl(tplEntity.value, items, o, () => {
+          if (!formVisible) {
+            message.success('已生成');
+          }
+        }),
+      );
     }
-    setOptions({...values});
-    dispatch?.({type: 'swagger/update', payload: { project, data: pick(values, UPDATE_FIELDS)}});
-    setTplCodeList(generateTpl(tplEntity.value, items, values, () => {
-      if (!isDefaultAction) {
-        message.success('已生成');
-      }
-    }));
   };
 
   const handleDel = (entity: Tpl) => {
@@ -98,19 +113,21 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
         p = new Tpl();
         p.uid = '';
       }
-      const o = {...options, tpl: p.uid };
+      const o = { ...options, tplUid: p.uid };
       setEditTpl(p);
       setOptions(o);
-      formRef.setFieldsValue({ tpl: o.tpl });
-      onFinish(o, true);
+      formRef.setFieldsValue({ tplUid: o.tplUid });
+      onFinish(o);
     }
   };
 
   const handleEditTpl = () => {
-    const p = find(apiTplList, (t) => t.uid === watchTpl);
+    const p = find(apiTplList, (t) => t.uid === watchTplUid);
     if (!p) {
       return message.warn('请选择模板');
     }
+    const o = { ...options, ...formRef.getFieldsValue() };
+    setOptions(o);
     if (p.type < 0) {
       Modal.confirm({
         title: '提示',
@@ -123,33 +140,33 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
             type: 1,
             uid: null,
           });
-          copyTpl.name +=  '- 副本';
+          copyTpl.name += '- 副本';
           setVisibleDialogTplEdit(true);
           setEditTpl(copyTpl);
-        }
+        },
       });
     } else {
       setVisibleDialogTplEdit(true);
-      setEditTpl({...p});
+      setEditTpl({ ...p });
     }
   };
 
-  return(
+  return (
     <>
       <DialogApiEdit
         options={options}
         tplEntity={editTpl}
         visible={visibleDialogTplEdit}
         onAdd={(entity: Tpl) => {
-          const o = {...options, tpl: entity.uid };
+          const o = { ...options, tplUid: entity.uid };
           setOptions(o);
-          formRef.setFieldsValue({ tpl: entity.uid });
+          formRef.setFieldsValue({ tplUid: entity.uid });
           onFinish(o, true);
         }}
         onDelete={handleDel}
         onChangeVisible={(v, isDelete) => {
           setVisibleDialogTplEdit(v);
-          !isDelete && onFinish(options, true)
+          !isDelete && onFinish(null, true);
         }}
       />
       <Modal
@@ -159,18 +176,30 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
         visible={visible}
         onCancel={() => onChangeVisible?.(false)}
         footer={[
-          <Button type="primary" onClick={() => onChangeVisible?.(!visible)}>
-            确定
-          </Button>
+          <Button onClick={() => onChangeVisible?.(!visible)}>关闭</Button>,
         ]}
       >
         <Row gutter={20}>
           <Col span={7}>
-            <Space style={{marginBottom: 16, display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap'}}>
+            <Space
+              style={{
+                marginBottom: 16,
+                display: 'flex',
+                justifyContent: 'flex-end',
+                flexWrap: 'wrap',
+              }}
+            >
               <Button onClick={handleAdd}>新增模板</Button>
-              <Button disabled={!watchTpl} onClick={handleEditTpl}>编辑模板</Button>
-              <Button onClick={() => {dispatch?.({type: 'tpl/setDefault', payload: {value: watchTpl, type: 'api'}}); message.success('操作成功')}} disabled={!watchTpl} >设置为默认模板</Button>
-              <Button type="primary" onClick={() => formRef.submit()} style={{marginLeft: 30}}>立即生成</Button>
+              <Button disabled={!watchTplUid} onClick={handleEditTpl}>
+                编辑模板
+              </Button>
+              <Button
+                type="primary"
+                onClick={() => formRef.submit()}
+                style={{ marginLeft: 30 }}
+              >
+                立即生成
+              </Button>
             </Space>
             <Form
               form={formRef}
@@ -179,51 +208,119 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
               onFinish={onFinish}
               style={{ marginTop: 30 }}
             >
-              <Form.Item name="tpl" label="选择模板" rules={[{ required: true, message: '必选项' }]}>
-                <Select allowClear>
+              <Form.Item
+                name="tplUid"
+                label="选择模板"
+                rules={[{ required: true, message: '必选项' }]}
+              >
+                <Select
+                  allowClear
+                  onChange={(uid) => {
+                    dispatch?.({
+                      type: 'tpl/setDefault',
+                      payload: { value: uid, type: 'api' },
+                    });
+                  }}
+                >
                   {apiTplList.map((t: Tpl) => (
-                    <Option value={t.uid}>{t.name}</Option>
+                    <Option value={t.uid} key={t.uid}>
+                      {t.name}
+                    </Option>
                   ))}
                 </Select>
               </Form.Item>
-              {
-                !watchOnlyApi && (<>
-                    <Form.Item name="headText" label="头部内容">
-                      <Input.TextArea maxLength={256}/>
-                    </Form.Item>
-                    <Form.Item name="baseURL" label="baseURL">
-                      <Input maxLength={256}/>
-                    </Form.Item>
-                  </>
-                )
-              }
-              <Space size={20} style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end'}}>
-                <Form.Item
-                  name="semi"
-                  valuePropName="checked"
-                >
-                  <Checkbox><span className="white-space-nowrap">分号符</span></Checkbox>
+              {!watchOnlyApi && (
+                <>
+                  <Form.Item name="headText" label="头部内容">
+                    <Input.TextArea
+                      maxLength={2048}
+                      onChange={(e) => {
+                        dispatch?.({
+                          type: 'swagger/updateOptions',
+                          payload: {
+                            project,
+                            data: { headText: e.target.value },
+                          },
+                        });
+                      }}
+                    />
+                  </Form.Item>
+                  <Form.Item name="baseURL" label="baseURL">
+                    <Input
+                      maxLength={2048}
+                      onChange={(e) => {
+                        dispatch?.({
+                          type: 'swagger/updateOptions',
+                          payload: {
+                            project,
+                            data: { baseURL: e.target.value },
+                          },
+                        });
+                      }}
+                    />
+                  </Form.Item>
+                </>
+              )}
+              <Space
+                size={20}
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  justifyContent: 'flex-end',
+                }}
+              >
+                <Form.Item name="semi" valuePropName="checked">
+                  <Checkbox
+                    onChange={(e) => {
+                      dispatch?.({
+                        type: 'swagger/updateOptions',
+                        payload: { project, data: { semi: e.target.checked } },
+                      });
+                    }}
+                  >
+                    <span className="white-space-nowrap">分号符</span>
+                  </Checkbox>
                 </Form.Item>
-                <Form.Item
-                  name="onlyApi"
-                  valuePropName="checked"
-                >
-                  <Checkbox><span className="white-space-nowrap">只生成API</span></Checkbox>
+                <Form.Item name="onlyApi" valuePropName="checked">
+                  <Checkbox
+                    onChange={(e) => {
+                      dispatch?.({
+                        type: 'swagger/updateOptions',
+                        payload: {
+                          project,
+                          data: { onlyApi: e.target.checked },
+                        },
+                      });
+                    }}
+                  >
+                    <span className="white-space-nowrap">只生成API</span>
+                  </Checkbox>
                 </Form.Item>
-                <Form.Item
-                  name="cancelSameRequest"
-                  valuePropName="checked"
-                >
-                  <Checkbox><span className="white-space-nowrap">取消重复请求</span></Checkbox>
+                <Form.Item name="cancelSameRequest" valuePropName="checked">
+                  <Checkbox
+                    onChange={(e) => {
+                      dispatch?.({
+                        type: 'swagger/updateOptions',
+                        payload: {
+                          project,
+                          data: { cancelSameRequest: e.target.checked },
+                        },
+                      });
+                    }}
+                  >
+                    <span className="white-space-nowrap">取消重复请求</span>
+                  </Checkbox>
                 </Form.Item>
               </Space>
             </Form>
           </Col>
           <Col span={17}>
             <Row gutter={20}>
-              {tplCodeList.map((t) => (
-                <Col span={24 / tplCodeList.length}>
-                  <div style={{height: '100%'}}><CodeBox code={t} /></div>
+              {tplCodeList.map((t, index) => (
+                <Col span={24 / tplCodeList.length} key={index}>
+                  <div style={{ height: '100%' }}>
+                    <CodeBox code={t} />
+                  </div>
                 </Col>
               ))}
             </Row>
@@ -231,7 +328,9 @@ const DialogApi: FC<DialogApiProps> = ({project, items, visible, onChangeVisible
         </Row>
       </Modal>
     </>
-  )
+  );
 };
 
-export default connect((state: IndexModelState) => ({ apiTplList: state.tpl.api }))(DialogApi);
+export default connect((state: IndexModelState) => ({
+  apiTplList: state.tpl.api,
+}))(DialogApi);

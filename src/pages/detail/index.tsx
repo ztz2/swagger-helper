@@ -16,7 +16,7 @@ import {
 } from 'antd';
 import { SmileOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 
-import { ApiInterface, Project } from '@/core/types';
+import { ApiInterface, Project, ProjectOptions } from '@/core/types';
 import { Tpl, generateTpl, swaggerParser } from '@/core';
 import CodeBox from '@/components/code-box';
 import Tree from './components/tree/index';
@@ -25,6 +25,7 @@ import styles from './index.scss';
 import { copyToClipboard } from '@/utils';
 import DialogReqResp from '@/pages/detail/components/dialog-req-resp';
 import { REQ_RESP_TPL6000 } from '@/constants/tpl/req-resp';
+import { find } from 'lodash';
 
 const { Panel } = Collapse;
 const { TextArea } = Input;
@@ -36,9 +37,9 @@ interface DetailPageProps extends ConnectProps {
   swagger: IndexModelState;
 }
 const DetailPage: FC<DetailPageProps> = ({
-  swagger,
   tpl,
   apiTplList,
+  swaggerList,
   dispatch,
 }) => {
   const urlParams: DetailPageUrlParams = useParams();
@@ -55,7 +56,7 @@ const DetailPage: FC<DetailPageProps> = ({
 
   useEffect(() => {
     const { uid } = urlParams;
-    const s = swagger.list.find((t: Project) => t.uid === uid);
+    const s = swaggerList.find((t: Project) => t.uid === uid);
     if (!s) {
       setIsEmpty(true);
     }
@@ -72,6 +73,13 @@ const DetailPage: FC<DetailPageProps> = ({
       })
       .catch(() => setIsEmpty(true));
   }, []);
+
+  useEffect(() => {
+    if (project) {
+      const item = find(swaggerList, (t) => t.uid === project.uid);
+      item && setProject({ ...project, options: item.options });
+    }
+  }, [swaggerList]);
 
   useEffect(() => {
     const d = apiTplList.find((t: Tpl) => t.isDefault);
@@ -228,7 +236,7 @@ const DetailPage: FC<DetailPageProps> = ({
               ) : (
                 <div className={styles.apiWrap}>
                   {selectApiList.map((api) => (
-                    <div className={styles.apiItem}>
+                    <div className={styles.apiItem} key={api.uid}>
                       <div className={styles.apiTop}>
                         <Alert
                           type="info"
@@ -257,48 +265,50 @@ const DetailPage: FC<DetailPageProps> = ({
                       <div className={styles.apiContent}>
                         <Collapse defaultActiveKey={['0']}>
                           <Panel header="API方法" key="1">
-                            <div>
-                              <CodeBox
-                                code={
-                                  apiTpl.value &&
-                                  generateTpl(apiTpl.value, [api], {
-                                    onlyApi: true,
-                                    ...project,
-                                  })[0]
-                                }
-                                inCollapse
-                              />
-                            </div>
+                            <Space size={16} className={styles.detailCodeBox}>
+                              {generateTpl(apiTpl.value, [api], {
+                                onlyApi: true,
+                                ...project.options,
+                              })
+                                .filter((t, i) => {
+                                  if (apiTpl.uid !== 'API_TPL1000') {
+                                    return true;
+                                  }
+                                  return i < 1;
+                                })
+                                .filter((t) => t)
+                                .map((s) => (
+                                  <CodeBox code={s} />
+                                ))}
+                            </Space>
                           </Panel>
                           <Panel header="请求参数" key="2">
-                            <div>
-                              <CodeBox
-                                code={
-                                  generateTpl(
-                                    REQ_RESP_TPL6000,
-                                    api,
-                                    api.requests,
-                                    [],
-                                  )[0]
-                                }
-                                inCollapse
-                              />
-                            </div>
+                            <Space size={16} className={styles.detailCodeBox}>
+                              {generateTpl(
+                                REQ_RESP_TPL6000,
+                                api,
+                                api.requests,
+                                [],
+                              )
+                                .filter((t) => t)
+                                .map((s) => (
+                                  <CodeBox code={s} />
+                                ))}
+                            </Space>
                           </Panel>
                           <Panel header="响应参数" key="3">
-                            <div>
-                              <CodeBox
-                                code={
-                                  generateTpl(
-                                    REQ_RESP_TPL6000,
-                                    api,
-                                    [],
-                                    api.responses,
-                                  )[1]
-                                }
-                                inCollapse
-                              />
-                            </div>
+                            <Space size={16} className={styles.detailCodeBox}>
+                              {generateTpl(
+                                REQ_RESP_TPL6000,
+                                api,
+                                [],
+                                api.responses,
+                              )
+                                .filter((t) => t)
+                                .map((s) => (
+                                  <CodeBox code={s} />
+                                ))}
+                            </Space>
                           </Panel>
                         </Collapse>
                       </div>
@@ -315,7 +325,7 @@ const DetailPage: FC<DetailPageProps> = ({
 };
 
 export default connect((state: IndexModelState) => ({
-  swagger: state.swagger,
   tpl: state.tpl,
   apiTplList: state.tpl.api,
+  swaggerList: state.swagger.list,
 }))(DetailPage);

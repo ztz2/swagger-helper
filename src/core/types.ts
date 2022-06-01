@@ -1,167 +1,189 @@
 import { v4 as uuidv4 } from 'uuid';
+import ex from 'umi/dist';
 
 // 字段
 export interface FieldInterface {
   // 字段
-  key: string
+  key: string;
   // label
-  label: string
+  label: string;
   // 字段类型
-  type: string
+  type: string;
   // 类型值
-  typeValue: string
+  typeValue: string;
   // 它的子集字段【当该字段为Object或者Array<object>】
-  children: Array<FieldInterface>
+  children: Array<FieldInterface>;
   // 它的子集为基本数据类型时候的值
-  childType: string | null
+  childType: string | null;
   // 字段描述
-  description?: string
+  description?: string;
   // 是否必填字段
-  required: boolean
+  required: boolean;
   // 例子
-  example: string
+  example: string;
   // 默认值
-  defaultValue: any
+  defaultValue: any;
   // 唯一ID
-  uid: string
+  uid: string;
   // 父节点
-  parentUid: string | null
+  parentUid: string | null;
 }
 export class Field implements FieldInterface {
-  key = ''
-  label = ''
-  type = ''
-  typeValue = ''
-  children = [] as Array<FieldInterface>
-  childType = ''
-  description = ''
-  required = false
-  example = ''
-  defaultValue = null
-  uid = uuidv4()
-  parentUid = null
+  key = '';
+  label = '';
+  type = '';
+  typeValue = '';
+  children = [] as Array<FieldInterface>;
+  childType = '';
+  description = '';
+  required = false;
+  example = '';
+  defaultValue = null;
+  uid = uuidv4();
+  parentUid = null;
 }
 
 // API
 export interface ApiInterface {
   // 接口名称
-  label: string,
+  label: string;
   // 接口地址
-  url: string
+  url: string;
   // 根据URL生成的接口名称
-  name: string
+  name: string;
   // 生成的接口地址
-  methodUrl: string
+  methodUrl: string;
   // 唯一的UID
-  uid: string
+  uid: string;
   // 父节点UID
-  parentUid: string
+  parentUid: string;
   // 接口请求方法
-  method: string
+  method: string;
   // 生成的接口请求方法名称
-  methodName: string
+  methodName: string;
   // 请求数据类型
-  requestContentType: string
+  requestContentType: string;
   // 请求数据字段集合
-  requests: Array<FieldInterface>
+  requests: Array<FieldInterface>;
   // 响应数据字段集合
-  responses: Array<FieldInterface>
+  responses: Array<FieldInterface>;
 }
 
 export class Api implements ApiInterface {
-  uid = ''
-  name = ''
-  parentUid = ''
-  method = ''
-  methodName = ''
-  requests = []
-  requestContentType = ''
-  responses = []
-  label = ''
-  url = ''
-  methodUrl = ''
+  uid = '';
+  name = '';
+  parentUid = '';
+  method = '';
+  methodName = '';
+  requests = [];
+  requestContentType = '';
+  responses = [];
+  label = '';
+  url = '';
+  methodUrl = '';
 }
 
 // 模块
 export interface ProjectModuleInterface {
-  uid: string
-  label: string
-  description: string
-  apiList: Array<ApiInterface>
+  uid: string;
+  label: string;
+  description: string;
+  apiList: Array<ApiInterface>;
 }
 export class ProjectModule implements ProjectModuleInterface {
-  uid = ''
-  label = ''
-  description = ''
-  apiList = []
+  uid = '';
+  label = '';
+  description = '';
+  apiList = [];
   constructor(label = '') {
     this.uid = uuidv4();
     this.label = label;
   }
 }
 
+export class ProjectOptions {
+  // baseURL
+  baseURL = '';
+  // 是否只生成API接口函数方法
+  onlyApi = false;
+  // 是否增加取消重复请求配置
+  cancelSameRequest = false;
+  // 一些头部模板文本
+  headText = `import request from '@/utils/request'`;
+
+  // 是否生成分号
+  semi = true;
+  // 是否生成CRUD
+  crud = false;
+  // 是否使用格栅布局
+  grid = false;
+  // 输入框属性
+  maxlength = 100;
+  // 输入框是否生成placeholder
+  placeholder = false;
+  // 表单是否生成label
+  generateLabel = false;
+}
+
 // 项目
 export interface ProjectInterface {
-  uid: string
-  label: string
-  url: string
-  text: string
-  type: number
-  version: string | null
-  isSameVersion: boolean
-  baseURL: string
-  headText: string
-  username: string
-  password: string
-  maxlength: number
-  generateLabel: boolean
-  modules: Array<ProjectModuleInterface>
+  // 项目唯一ID
+  uid: string;
+  // 项目名称
+  label: string;
+  // 项目Swagger配置地址
+  url: string;
+  // 项目Swagger配置请求用户名
+  username: string;
+  // 项目Swagger配置请求密码
+  password: string;
+  // 项目模块
+  modules: Array<ProjectModuleInterface>;
+  // 当前项目的一些可选项配置
+  options: ProjectOptions;
 }
 export class Project implements ProjectInterface {
-  uid = uuidv4()
-  url = ''
-  text = ''
-  type = 1
-  label = ''
-  modules = []
-  baseURL = ''
-  headText = `import request from '@/utils/request'`
-  version = null
-  isSameVersion = true
-  maxlength = 100
-  generateLabel = false
-  username = ''
-  password = ''
-  constructor(label?: string, url?: string, baseURL = '') {
-    this.label = label || '';
-    this.url = url || '';
-    this.baseURL = baseURL;
+  uid = uuidv4();
+  label = '';
+  url = '';
+  modules = [];
+  username = '';
+  password = '';
+  options = new ProjectOptions();
+  constructor(props: object = {}) {
+    const keys = Object.keys(this);
+    for (const [k, v] of Object.entries(props)) {
+      if (keys.includes(k)) {
+        // @ts-ignore
+        this[k] = v;
+      }
+    }
   }
 }
 
 export interface ParameterInterface {
   example: any;
-  in: string
+  in: string;
   // 字段
-  name: string
+  name: string;
   // 字段类型
-  type: string
+  type: string;
   // 字段描述
-  description: string
+  description: string;
   // 必填
-  required: boolean
-  allowEmptyValue: boolean
-  format: string
-  schema: any
-  items: any
+  required: boolean;
+  allowEmptyValue: boolean;
+  format: string;
+  schema: any;
+  items: any;
 }
 
 export interface SchemaInterface {
-  originalRef: string
+  originalRef: string;
   properties: {
-    [propName: string]: SchemaInterface
-  }
-  required: Array<string>
-  title: string
-  type: string
+    [propName: string]: SchemaInterface;
+  };
+  required: Array<string>;
+  title: string;
+  type: string;
 }

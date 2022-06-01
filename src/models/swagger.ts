@@ -1,9 +1,9 @@
 import { Effect, ImmerReducer, Reducer, Subscription } from 'umi';
 import { Project, ProjectInterface } from '@/core/types';
-import { cloneDeep, findIndex } from 'lodash';
+import { cloneDeep, findIndex, pick } from 'lodash';
 
 export interface SwaggerModelState {
-  list: Array<ProjectInterface>
+  list: Array<ProjectInterface>;
 }
 
 export interface SwaggerModelType {
@@ -25,9 +25,18 @@ const SwaggerModel: SwaggerModelType = {
 
   state: {
     list: [
-      new Project('示例项目', 'https://swaggerhelper.andou.live:9527/api/test', ''),
-      new Project('官方示例项目(Swagger Petstore - OpenAPI 2.0)', 'https://petstore.swagger.io/v2/swagger.json', ''),
-      new Project('官方示例项目(Swagger Petstore - OpenAPI 3.0)', 'https://petstore3.swagger.io/api/v3/openapi.json', ''),
+      new Project({
+        label: '示例项目',
+        url: 'https://swaggerhelper.andou.live:9527/api/test',
+      }),
+      new Project({
+        label: '官方示例项目(Swagger Petstore - OpenAPI 2.0)',
+        url: 'https://petstore.swagger.io/v2/swagger.json',
+      }),
+      new Project({
+        label: '官方示例项目(Swagger Petstore - OpenAPI 3.0)',
+        url: 'https://petstore3.swagger.io/api/v3/openapi.json',
+      }),
     ],
   },
 
@@ -36,7 +45,7 @@ const SwaggerModel: SwaggerModelType = {
   },
   reducers: {
     add(state: SwaggerModelState, action: any) {
-      return { ...state, list: [action.payload, ...state.list, ] }
+      return { ...state, list: [action.payload, ...state.list] };
     },
     delete(state: SwaggerModelState, action: any) {
       const index = state.list.indexOf(action.payload);
@@ -46,7 +55,7 @@ const SwaggerModel: SwaggerModelType = {
       return cloneDeep(state);
     },
     deleteAll(state: SwaggerModelState, action: any) {
-      return {...state, list: []};
+      return { ...state, list: [] };
     },
     update(state: SwaggerModelState, action: any) {
       const project = action?.payload?.project;
@@ -54,10 +63,26 @@ const SwaggerModel: SwaggerModelType = {
       if (project && data) {
         const index = findIndex(state.list, (t) => t.uid === project.uid);
         if (index !== -1) {
-          state.list.splice(index, 1, Object.assign({}, state.list[index], data));
+          state.list.splice(
+            index,
+            1,
+            Object.assign({}, state.list[index], data),
+          );
         }
       }
-      return {...state, list: [...state.list]}
+      return { ...state, list: [...state.list] };
+    },
+    updateOptions(state: SwaggerModelState, action: any) {
+      const project = action?.payload?.project;
+      const data = action?.payload?.data;
+      if (project && data) {
+        const index = findIndex(state.list, (t) => t.uid === project.uid);
+        if (index !== -1) {
+          const item = state.list[index];
+          item.options = Object.assign(item.options, data);
+        }
+      }
+      return { ...state };
     },
     // 启用 immer 之后
     // save(state, action) {

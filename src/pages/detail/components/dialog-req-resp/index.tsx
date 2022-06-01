@@ -1,35 +1,73 @@
 import React, { FC, useState, useEffect } from 'react';
 import { IndexModelState, ConnectProps, connect } from 'umi';
-import { Select, Row, Col, Form, Tree, Modal, Space, Button, message, Checkbox, InputNumber } from 'antd';
+import {
+  Select,
+  Row,
+  Col,
+  Form,
+  Tree,
+  Modal,
+  Space,
+  Button,
+  message,
+  Checkbox,
+  InputNumber,
+} from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { cloneDeep, find, pick } from 'lodash';
 
 import { Tpl, generateTpl, processFieldTree } from '@/core';
 import CodeBox from '@/components/code-box';
 import { REQ_RESP_TPL_DEMO1 } from '@/constants/tpl/req-resp';
-import { ApiInterface, FieldInterface, Project } from '@/core/types';
+import {
+  ApiInterface,
+  FieldInterface,
+  Project,
+  ProjectOptions,
+} from '@/core/types';
 import { GenerateReqRespTplOptions } from '@/core/template';
 import DialogReqRespEdit from '@/pages/detail/components/dialog-req-resp-edit';
 import { FIELD_NAMES, FILTER_REQUEST_FIELD } from '@/constants';
 import { treeFindParentNodes, treeForEach, treeToList } from '@/utils/tree';
+import { checkType } from '@/utils';
 
 const { Option } = Select;
-const UPDATE_FIELDS = ['semi', 'crud', 'grid', 'maxlength', 'placeholder', 'generateLabel'];
+const UPDATE_FIELDS = [
+  'semi',
+  'crud',
+  'grid',
+  'maxlength',
+  'placeholder',
+  'generateLabel',
+];
 const formItemLayout = {
   labelCol: { style: { width: '156px' } },
   wrapperCol: { style: { flexGrow: 1 } },
 };
 
-interface DialogReqRespProps extends ConnectProps {
-  project: Project
-  items: Array<ApiInterface>
-  visible: boolean
-  onChangeVisible(v: boolean): void
+class ReqRespOptions extends ProjectOptions {
+  // 所选模板的UID
+  tplUid = '';
+  // 所选API的UID
+  apiUid = '';
 }
-const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChangeVisible, tplList, dispatch}) => {
+interface DialogReqRespProps extends ConnectProps {
+  project: Project;
+  items: Array<ApiInterface>;
+  visible: boolean;
+  onChangeVisible(v: boolean): void;
+}
+const DialogReqResp: FC<DialogReqRespProps> = ({
+  project,
+  items,
+  visible,
+  onChangeVisible,
+  tplList,
+  dispatch,
+}) => {
   const [formRef] = Form.useForm();
-  const watchTpl = Form.useWatch('tpl', formRef);
-  const watchApi = Form.useWatch('api', formRef);
+  const watchTplUid = Form.useWatch('tplUid', formRef);
+  const watchApiUid = Form.useWatch('apiUid', formRef);
 
   const [visibleDialogTplEdit, setVisibleDialogTplEdit] = useState(false);
   const [tplCodeList, setTplCodeList] = useState<Array<string>>([]);
@@ -42,80 +80,47 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
   const [reqCheckedKeys, setReqCheckedKeys] = useState<Array<string>>([]);
   const [respCheckedKeys, setRespCheckedKeys] = useState<Array<string>>([]);
   const [respExpandedKeys, setRespExpandedKeys] = useState<Array<string>>([]);
-  const [reqCheckedNodes, setReqCheckedNodes] = useState<Array<FieldInterface>>([]);
-  const [respCheckedNodes, setRespCheckedNodes] = useState<Array<FieldInterface>>([]);
+  const [reqCheckedNodes, setReqCheckedNodes] = useState<Array<FieldInterface>>(
+    [],
+  );
+  const [respCheckedNodes, setRespCheckedNodes] = useState<
+    Array<FieldInterface>
+  >([]);
 
-  const [options, setOptions] = useState<GenerateReqRespTplOptions>({
-    // 所选模板
-    tpl: '',
-    // 所选接口
-    api: '',
-    // 是否生成分号
-    semi: true,
-    // 是否生成CRUD
-    crud: false,
-    // 是否使用格栅布局
-    grid: false,
-    // 输入框属性
-    maxlength: 100,
-    // 输入框是否生成placeholder
-    placeholder: false,
-    // 表单是否生成label
-    generateLabel: false,
-  });
+  const [options, setOptions] = useState<ReqRespOptions>(new ReqRespOptions());
 
-  const init = (isFirst?: boolean, isDefaultAction?: boolean) => {
-    const o = Object.assign({}, options);
-    // 默认模板
-    let d = tplList.find((t: Tpl) => t.isDefault);
-    d = d ?? tplList[0];
-    const defaultUid = d.uid;
-    for (const key in options) {
-      if (project.hasOwnProperty(key)) {
-        // @ts-ignore
-        options[key] = project[key];
-      }
-    }
-    if (isFirst) {
-      if (defaultUid) {
-        formRef.setFieldsValue({ tpl: defaultUid });
-        Object.assign(o, {...options, tpl: defaultUid});
-      }
-    }
-    let t = false;
-    if (!selectApi && items?.length > 0) {
-      const api = items[0];
-      formRef.setFieldsValue({ api: api.uid });
-      Object.assign(o, {...options, api: api.uid });
-      setSelectApi(api);
-      t = true;
-      setIsRender(true);
-    }
-
-    setOptions(o as GenerateReqRespTplOptions);
-    formRef.setFieldsValue(o);
-    !t && onFinish(o, isDefaultAction);
-  };
-
-  useEffect(() => { init(true, true); }, [])
-
+  // Mounted - 设置默认选中的API
   useEffect(() => {
-    if (visible && formRef) {
-      init(false, true);
+    resetOptions();
+  }, []);
+
+  // 项目变化之后，恢复表单数据
+  useEffect(() => {
+    resetOptions();
+  }, [project, items]);
+
+  // 弹窗状态变化
+  useEffect(() => {
+    if (visible) {
+      onFinish(null, true);
     }
   }, [visible]);
 
   useEffect(() => {
-    handleSelectApi(watchApi);
-  }, [watchApi]);
+    handleSelectApi(watchApiUid);
+  }, [watchApiUid]);
 
   useEffect(() => {
     const requests = selectApi?.requests ?? [];
     const responses = selectApi?.responses ?? [];
     // 请求数据字段选中
-    const reqCheckedNodeList = cloneDeep(requests).map((t) => {
-      return (t.key.includes('.') || FILTER_REQUEST_FIELD.includes(t.key)) ? null : t;
-    }).filter((t) => t);
+    const reqCheckedNodeList = cloneDeep(requests)
+      .map((t) => {
+        return t.key.includes('.') || FILTER_REQUEST_FIELD.includes(t.key)
+          ? null
+          : t;
+      })
+      .filter((t) => t);
     setReqCheckedNodes(reqCheckedNodeList);
     setReqCheckedKeys(reqCheckedNodeList.map((t) => t.uid));
 
@@ -136,7 +141,10 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
       return result;
     };
     let respCheckedNodeList = initNodeList('content');
-    respCheckedNodeList = respCheckedNodeList.length > 0 ? respCheckedNodeList : initNodeList('data');
+    respCheckedNodeList =
+      respCheckedNodeList.length > 0
+        ? respCheckedNodeList
+        : initNodeList('data');
     const t = respCheckedNodeList.map((t) => t.uid);
     setRespCheckedKeys(t);
     setRespCheckedNodes(respCheckedNodeList);
@@ -144,7 +152,10 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
     // 响应数据，子集选中，父级展开
     const expand = [];
     respCheckedNodeList.forEach((node) => {
-      treeFindParentNodes(treeToList(cloneDeep(responses)), node, { id: 'uid', pid: 'parentUid', }).forEach((pNode) => {
+      treeFindParentNodes(treeToList(cloneDeep(responses)), node, {
+        id: 'uid',
+        pid: 'parentUid',
+      }).forEach((pNode) => {
         expand.push(pNode.uid);
       });
     });
@@ -152,15 +163,28 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
 
     setReqTree(requests);
     setRespTree(responses);
-
   }, [selectApi]);
 
   useEffect(() => {
     if (isRender) {
-      onFinish(options, true);
+      onFinish(null, true);
       setIsRender(false);
     }
   }, [reqTree, respTree]);
+
+  const resetOptions = () => {
+    const defaultTpl = tplList.find((t: Tpl) => t.isDefault);
+    const defaultUid = defaultTpl ? defaultTpl.uid : tplList?.[0]?.uid ?? '';
+    const o = { ...options, ...(project?.options ?? {}), tplUid: defaultUid };
+    if (!selectApi && items?.length > 0) {
+      const api = items[0];
+      o.apiUid = api.uid;
+      setSelectApi(api);
+      setIsRender(true);
+    }
+    setOptions(o);
+    formRef?.setFieldsValue?.(o);
+  };
 
   const handleAdd = () => {
     const entity = new Tpl();
@@ -170,18 +194,28 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
     setVisibleDialogTplEdit(true);
   };
 
-  const onFinish = (values: GenerateReqRespTplOptions, isDefaultAction?: boolean) => {
-    const tplEntity = tplList.find((t: Tpl) => t.uid === values.tpl);
-    if (!tplEntity) {
-      return
+  const onFinish = (
+    values?: ReqRespOptions | null,
+    isDefaultAction?: boolean,
+  ) => {
+    const o = checkType(values, 'Object') ? values : options;
+    const tplEntity = tplList.find((t: Tpl) => t.uid === o?.tplUid);
+    if (tplEntity) {
+      setTplCodeList(
+        generateTpl(
+          tplEntity.value,
+          selectApi,
+          processFieldTree(reqTree, reqCheckedNodes),
+          processFieldTree(respTree, respCheckedNodes),
+          values,
+          () => {
+            if (!isDefaultAction) {
+              message.success('已生成');
+            }
+          },
+        ),
+      );
     }
-    setOptions({...values});
-    dispatch?.({type: 'swagger/update', payload: { project, data: pick(values, UPDATE_FIELDS)}});
-    setTplCodeList(generateTpl(tplEntity.value, selectApi, processFieldTree(reqTree, reqCheckedNodes), processFieldTree(respTree, respCheckedNodes), values, () => {
-      if (!isDefaultAction) {
-        message.success('已生成');
-      }
-    }));
   };
 
   const handleDel = (entity: Tpl) => {
@@ -192,7 +226,7 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
         p = new Tpl();
         p.uid = '';
       }
-      const o = {...options, tpl: p.uid };
+      const o = { ...options, tpl: p.uid };
       setEditTpl(p);
       setOptions(o);
       formRef.setFieldsValue({ tpl: o.tpl });
@@ -201,10 +235,12 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
   };
 
   const handleEditTpl = () => {
-    const p = find(tplList, (t) => t.uid === watchTpl);
+    const p = find(tplList, (t) => t.uid === watchTplUid);
     if (!p) {
       return message.warn('请选择模板');
     }
+    const o = { ...options, ...formRef.getFieldsValue() };
+    setOptions(o);
     if (p.type < 0) {
       Modal.confirm({
         title: '提示',
@@ -217,20 +253,26 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
             type: 1,
             uid: null,
           });
-          copyTpl.name +=  '- 副本';
+          copyTpl.name += '- 副本';
           setVisibleDialogTplEdit(true);
           setEditTpl(copyTpl);
-        }
+        },
       });
     } else {
       setVisibleDialogTplEdit(true);
-      setEditTpl({...p});
+      setEditTpl({ ...p });
     }
   };
 
-  const handleSelectApi = (apiUid: string) => { setSelectApi(find(items, (t) => t.uid === apiUid)); }
+  const handleSelectApi = (apiUid: string) => {
+    setSelectApi(find(items, (t) => t.uid === apiUid));
+  };
 
-  const handleTreeCheck = (selectedKeys: Array<string>, { checkedNodes }: any, type: string) => {
+  const handleTreeCheck = (
+    selectedKeys: Array<string>,
+    { checkedNodes }: any,
+    type: string,
+  ) => {
     if (type === 'req') {
       setReqCheckedNodes(checkedNodes);
     } else if (type === 'resp') {
@@ -238,22 +280,22 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
     }
   };
 
-  return(
+  return (
     <>
       <DialogReqRespEdit
         options={options}
         tplEntity={editTpl}
         visible={visibleDialogTplEdit}
         onAdd={(entity: Tpl) => {
-          const o = {...options, tpl: entity.uid };
+          const o = { ...options, tplUid: entity.uid };
           setOptions(o);
-          formRef.setFieldsValue({ tpl: entity.uid });
+          formRef.setFieldsValue({ tplUid: entity.uid });
           onFinish(o, true);
         }}
         onDelete={handleDel}
         onChangeVisible={(v, isDelete) => {
           setVisibleDialogTplEdit(v);
-          !isDelete && onFinish(options, true)
+          !isDelete && onFinish(options, true);
         }}
       />
       <Modal
@@ -263,18 +305,30 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
         visible={visible}
         onCancel={() => onChangeVisible?.(false)}
         footer={[
-          <Button type="primary" onClick={() => onChangeVisible?.(!visible)}>
-            确定
-          </Button>
+          <Button onClick={() => onChangeVisible?.(!visible)}>关闭</Button>,
         ]}
       >
         <Row gutter={20}>
           <Col span={7}>
-            <Space style={{marginBottom: 16, display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap'}}>
+            <Space
+              style={{
+                marginBottom: 16,
+                display: 'flex',
+                justifyContent: 'flex-end',
+                flexWrap: 'wrap',
+              }}
+            >
               <Button onClick={handleAdd}>新增模板</Button>
-              <Button disabled={!watchTpl} onClick={handleEditTpl}>编辑模板</Button>
-              <Button onClick={() => {dispatch?.({type: 'tpl/setDefault', payload: {value: watchTpl, type: 'api'}}); message.success('操作成功')}} disabled={!watchTpl} >设置为默认模板</Button>
-              <Button type="primary" onClick={() => formRef.submit()} style={{marginLeft: 30}}>立即生成</Button>
+              <Button disabled={!watchTplUid} onClick={handleEditTpl}>
+                编辑模板
+              </Button>
+              <Button
+                type="primary"
+                onClick={() => formRef.submit()}
+                style={{ marginLeft: 30 }}
+              >
+                立即生成
+              </Button>
             </Space>
             <Form
               form={formRef}
@@ -283,11 +337,15 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
               onFinish={onFinish}
             >
               <div>
-                <div style={{marginBottom: 18}}>
-                  <Form.Item name="api" label="选择API" rules={[{ required: true, message: '必选项' }]}>
+                <div style={{ marginBottom: 18 }}>
+                  <Form.Item
+                    name="apiUid"
+                    label="选择API"
+                    rules={[{ required: true, message: '必选项' }]}
+                  >
                     <Select allowClear>
                       {items.map((t: ApiInterface) => (
-                        <Option value={t.uid}>
+                        <Option value={t.uid} key={t.uid}>
                           <Space>
                             <span>【{t.method.toUpperCase()}】</span>
                             <span>{t.url}</span>
@@ -298,49 +356,131 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
                     </Select>
                   </Form.Item>
                 </div>
-                <div style={{marginBottom: 18}}>
-                  <Form.Item name="tpl" label="选择模板" rules={[{ required: true, message: '必选项' }]}>
-                    <Select allowClear>
+                <div style={{ marginBottom: 18 }}>
+                  <Form.Item
+                    name="tplUid"
+                    label="选择模板"
+                    rules={[{ required: true, message: '必选项' }]}
+                  >
+                    <Select
+                      allowClear
+                      onChange={(uid) => {
+                        dispatch?.({
+                          type: 'tpl/setDefault',
+                          payload: { value: uid, type: 'reqResp' },
+                        });
+                      }}
+                    >
                       {tplList.map((t: Tpl) => (
-                        <Option value={t.uid}>{t.name}</Option>
+                        <Option value={t.uid} key={t.uid}>
+                          {t.name}
+                        </Option>
                       ))}
                     </Select>
                   </Form.Item>
                 </div>
                 <Col span={24}>
-                  <Space style={{display: 'flex', flexWrap: 'wrap', marginLeft: '-10px'}}>
-                    <Form.Item name="maxlength" label="输入框 maxlength 属性" style={{ margin: '0 12px 0 0' }}>
-                      <InputNumber placeholder="输入框 maxlength 属性" style={{ width: 156 }} />
-                    </Form.Item>
+                  <Space
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      marginLeft: '-10px',
+                    }}
+                  >
                     <Form.Item
-                      name="semi"
-                      valuePropName="checked"
+                      name="maxlength"
+                      label="输入框 maxlength 属性"
+                      style={{ margin: '0 12px 0 0' }}
                     >
-                      <Checkbox><span className="white-space-nowrap">分号符</span></Checkbox>
+                      <InputNumber
+                        placeholder="输入框 maxlength 属性"
+                        style={{ width: 156 }}
+                        onChange={(value) => {
+                          dispatch?.({
+                            type: 'swagger/updateOptions',
+                            payload: { project, data: { maxlength: value } },
+                          });
+                        }}
+                      />
                     </Form.Item>
-                    <Form.Item
-                      name="crud"
-                      valuePropName="checked"
-                    >
-                      <Checkbox><span className="white-space-nowrap">生成CURD</span></Checkbox>
+                    <Form.Item name="semi" valuePropName="checked">
+                      <Checkbox
+                        onChange={(e) => {
+                          dispatch?.({
+                            type: 'swagger/updateOptions',
+                            payload: {
+                              project,
+                              data: { semi: e.target.checked },
+                            },
+                          });
+                        }}
+                      >
+                        <span className="white-space-nowrap">分号符</span>
+                      </Checkbox>
                     </Form.Item>
-                    <Form.Item
-                      name="grid"
-                      valuePropName="checked"
-                    >
-                      <Checkbox><span className="white-space-nowrap">格栅布局</span></Checkbox>
+                    <Form.Item name="crud" valuePropName="checked">
+                      <Checkbox
+                        onChange={(e) => {
+                          dispatch?.({
+                            type: 'swagger/updateOptions',
+                            payload: {
+                              project,
+                              data: { crud: e.target.checked },
+                            },
+                          });
+                        }}
+                      >
+                        <span className="white-space-nowrap">生成CURD</span>
+                      </Checkbox>
                     </Form.Item>
-                    <Form.Item
-                      name="placeholder"
-                      valuePropName="checked"
-                    >
-                      <Checkbox><span className="white-space-nowrap">输入框生成placeholder</span></Checkbox>
+                    <Form.Item name="grid" valuePropName="checked">
+                      <Checkbox
+                        onChange={(e) => {
+                          dispatch?.({
+                            type: 'swagger/updateOptions',
+                            payload: {
+                              project,
+                              data: { grid: e.target.checked },
+                            },
+                          });
+                        }}
+                      >
+                        <span className="white-space-nowrap">格栅布局</span>
+                      </Checkbox>
                     </Form.Item>
-                    <Form.Item
-                      name="generateLabel"
-                      valuePropName="checked"
-                    >
-                      <Checkbox><span className="white-space-nowrap">表单生成label</span></Checkbox>
+                    <Form.Item name="placeholder" valuePropName="checked">
+                      <Checkbox
+                        onChange={(e) => {
+                          dispatch?.({
+                            type: 'swagger/updateOptions',
+                            payload: {
+                              project,
+                              data: { placeholder: e.target.checked },
+                            },
+                          });
+                        }}
+                      >
+                        <span className="white-space-nowrap">
+                          输入框生成placeholder
+                        </span>
+                      </Checkbox>
+                    </Form.Item>
+                    <Form.Item name="generateLabel" valuePropName="checked">
+                      <Checkbox
+                        onChange={(e) => {
+                          dispatch?.({
+                            type: 'swagger/updateOptions',
+                            payload: {
+                              project,
+                              data: { generateLabel: e.target.checked },
+                            },
+                          });
+                        }}
+                      >
+                        <span className="white-space-nowrap">
+                          表单生成label
+                        </span>
+                      </Checkbox>
                     </Form.Item>
                   </Space>
                 </Col>
@@ -387,9 +527,11 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
           </Col>
           <Col span={17}>
             <Row gutter={20}>
-              {tplCodeList.map((t) => (
-                <Col span={24 / tplCodeList.length}>
-                  <div style={{height: '100%'}}><CodeBox code={t} /></div>
+              {tplCodeList.map((t, index) => (
+                <Col span={24 / tplCodeList.length} key={index}>
+                  <div style={{ height: '100%' }}>
+                    <CodeBox code={t} />
+                  </div>
                 </Col>
               ))}
             </Row>
@@ -397,7 +539,9 @@ const DialogReqResp: FC<DialogReqRespProps> = ({project, items, visible, onChang
         </Row>
       </Modal>
     </>
-  )
+  );
 };
 
-export default connect((state: IndexModelState) => ({ tplList: state.tpl.reqResp }))(DialogReqResp);
+export default connect((state: IndexModelState) => ({
+  tplList: state.tpl.reqResp,
+}))(DialogReqResp);

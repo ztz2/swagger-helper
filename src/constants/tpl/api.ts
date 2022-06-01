@@ -56,13 +56,15 @@ export interface FieldInterface {
 // 可选的配置项
 type Options = {
   // 是否生成分号
-  semi: true,
+  semi: true
   // baseURL
   baseURL: string
   // 是否只生成API接口函数方法
   onlyApi: boolean
   // 是否增加取消重复请求配置
   cancelSameRequest: boolean
+  // 一些头部模板文本
+  headText = string
 }
  * @param apiList { Array<ApiInterface> } 选择的接口集合
  * @param options { Options= } 可选的配置项

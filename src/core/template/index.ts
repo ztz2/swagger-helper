@@ -45,15 +45,6 @@ ${mergeBlank(gap, num)}}<% if (field.type==='array') { %>]<% } %>`;
   return template.render(tpl, { field, options });
 };
 
-export interface GenerateApiTplOptions {
-  baseURL: string;
-  onlyApi: boolean;
-  cancelSameRequest: boolean;
-  headText: string;
-  tpl: string;
-  semi: true;
-}
-
 export interface GenerateReqRespTplOptions {
   // 所选模板
   tpl: string;
