@@ -164,6 +164,10 @@ const DialogApi: FC<DialogApiProps> = ({
           const o = { ...options, tplUid: entity.uid };
           setOptions(o);
           formRef.setFieldsValue({ tplUid: entity.uid });
+          dispatch?.({
+            type: 'tpl/setDefault',
+            payload: { value: entity.uid, type: 'api' },
+          });
         }}
         onDelete={handleDel}
         onChangeVisible={(v, isDelete) => {
