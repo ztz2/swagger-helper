@@ -413,7 +413,7 @@ export const REQ_RESP_TPL5000 =
 
   // 响应数据Interface生成
    let respTpl = renderInterface(responses, options);
-  if (reqTpl.trim().replace(/\\n/gim, '').length > 0) {
+  if (respTpl.trim().replace(/\\n/gim, '').length > 0) {
     respTpl = \`interface \${apiName}RespInterface \${respTpl}\n\`;
   }
   result.push(respTpl);
@@ -495,14 +495,14 @@ function renderFields (fieldList, options) {
   };
 
 
-  // 请求数据Interface生成
+  // 请求数据对象生成
   let reqTpl = renderFields(requests, options);
   if (reqTpl.trim().replace(/\\n/gim, '').length > 0) {
     reqTpl = \`class \${apiName}ReqClass \${reqTpl}\n\`;
   }
   result.push(reqTpl);
 
-  // 响应数据Interface生成
+  // 响应数据对象生成
    let respTpl = renderFields(responses, options);
   if (respTpl.trim().replace(/\\n/gim, '').length > 0) {
     respTpl = \`class \${apiName}RespClass \${respTpl}\n\`;
