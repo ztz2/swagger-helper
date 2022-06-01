@@ -1,7 +1,6 @@
 import { cloneDeep } from 'lodash';
 
-const COMMON_HEAD =
-`/**
+const COMMON_HEAD = `/**
 // API
 export interface ApiInterface {
   // 接口名称
@@ -88,10 +87,10 @@ function renderTpl (api, requests, responses, options) {
   }, lodash.isPlainObject(options) ? options : {});
 `;
 
-
 /**------------------------------  Vue-表格模板[element-ui表格]--开始  ------------------------------**/
 export const REQ_RESP_TPL2000 =
-  COMMON_HEAD + `
+  COMMON_HEAD +
+  `
   const tpl =
 \`<template>
   <el-table
@@ -130,10 +129,10 @@ export default {
 `;
 /**------------------------------  Vue-表格模板[element-ui表格]--结束  ------------------------------**/
 
-
 /**------------------------------  Vue-表格模板[通用表格组件]--开始  ------------------------------**/
 export const REQ_RESP_TPL2001 =
-COMMON_HEAD + `
+  COMMON_HEAD +
+  `
   const tpl = \`<template>
   <div class="app-container">
     <NrTable
@@ -243,10 +242,10 @@ export default {
 `;
 /**------------------------------  Vue-表格模板[通用表格组件]--开始  ------------------------------**/
 
-
 /**------------------------------  Vue-实体类模板[通用表单组件]--开始  ------------------------------**/
 export const REQ_RESP_TPL2100 =
-COMMON_HEAD + `
+  COMMON_HEAD +
+  `
   const tpl = \`<template>
   <el-form
     :rules="rules"
@@ -342,7 +341,8 @@ export default {
 
 /**------------------------------  Vue-实体类模板[element-ui表单]--开始  ------------------------------**/
 export const REQ_RESP_TPL2101 =
-  COMMON_HEAD + `
+  COMMON_HEAD +
+  `
   const tpl =
 \`<el-form ref="form" :model="form" label-width="80px">{{if requests.length > 0}}{{if options.grid}}\n    <el-row :gutter="30">{{/if}}{{if requests[0]}}
   {{if options.grid}}  <el-col :span="span">\n        {{/if}}<el-form-item label="{{if requests[0].label}}{{requests[0].label}}{{else}}{{requests[0].key}}{{/if}}" prop="{{requests[0].key}}">
@@ -379,7 +379,8 @@ export default {
 
 /**------------------------------  TS-请求数据&响应数据[Interface]--结束  ------------------------------**/
 export const REQ_RESP_TPL5000 =
-  COMMON_HEAD + `
+  COMMON_HEAD +
+  `
   const apiName = lodash.upperFirst(api.methodName);
   function renderInterface  (fieldList, options) {
     if (fieldList.length === 0) {
@@ -405,14 +406,14 @@ export const REQ_RESP_TPL5000 =
 
   // 请求数据Interface生成
   let reqTpl = renderInterface(requests, options);
-  if (reqTpl.trim().length > 0) {
+  if (reqTpl.trim().replace(/\\n/gim, '').length > 0) {
     reqTpl = \`interface \${apiName}ReqInterface \${reqTpl}\n\`;
   }
   result.push(reqTpl);
 
   // 响应数据Interface生成
    let respTpl = renderInterface(responses, options);
-  if (reqTpl.trim().length > 0) {
+  if (reqTpl.trim().replace(/\\n/gim, '').length > 0) {
     respTpl = \`interface \${apiName}RespInterface \${respTpl}\n\`;
   }
   result.push(respTpl);
@@ -422,10 +423,10 @@ export const REQ_RESP_TPL5000 =
 `;
 /**------------------------------  TS-请求数据&响应数据[Interface]--结束  ------------------------------**/
 
-
 /**------------------------------  请求参数&响应参数[对象]--开始  ------------------------------**/
 export const REQ_RESP_TPL6000 =
-  COMMON_HEAD + `
+  COMMON_HEAD +
+  `
 function renderFields (fieldList, options) {
     if (fieldList.length === 0) {
       return '';
@@ -463,10 +464,10 @@ function renderFields (fieldList, options) {
 `;
 /**------------------------------  请求参数&响应参数[对象]--结束  ------------------------------**/
 
-
 /**------------------------------  请求参数&响应参数[Class]--开始  ------------------------------**/
 export const REQ_RESP_TPL6001 =
-  COMMON_HEAD + `
+  COMMON_HEAD +
+  `
 const apiName = lodash.upperFirst(api.methodName);
 function renderFields (fieldList, options) {
     if (fieldList.length === 0) {
@@ -496,14 +497,14 @@ function renderFields (fieldList, options) {
 
   // 请求数据Interface生成
   let reqTpl = renderFields(requests, options);
-  if (reqTpl.trim().length > 0) {
+  if (reqTpl.trim().replace(/\\n/gim, '').length > 0) {
     reqTpl = \`class \${apiName}ReqClass \${reqTpl}\n\`;
   }
   result.push(reqTpl);
 
   // 响应数据Interface生成
    let respTpl = renderFields(responses, options);
-  if (reqTpl.trim().length > 0) {
+  if (respTpl.trim().replace(/\\n/gim, '').length > 0) {
     respTpl = \`class \${apiName}RespClass \${respTpl}\n\`;
   }
   result.push(respTpl);
@@ -514,8 +515,9 @@ function renderFields (fieldList, options) {
 `;
 /**------------------------------  请求参数&响应参数[Class]--结束  ------------------------------**/
 
-
-export const REQ_RESP_TPL_DEMO1 = COMMON_HEAD + `
+export const REQ_RESP_TPL_DEMO1 =
+  COMMON_HEAD +
+  `
   const tpl1 =
 \`生成模板例子，这里获取请求数据和响应数据的字段，根据这些字段，可以生成想要的任何模板代码
 
@@ -537,4 +539,332 @@ export const REQ_RESP_TPL_DEMO1 = COMMON_HEAD + `
 };
 `;
 
-export const getMockApiData: any = () => cloneDeep({"uid":"be235f91-eec1-42fb-9df0-d1871e88b906","parentUid":"8f0f42e5-ac1b-489f-b33c-6f225e42bfab","method":"post","methodName":"postSubmit","requests":[{"key":"submitToken","label":"登录确认令牌","type":"string","typeValue":"string","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":"''","uid":"b1cceea0-e91c-491e-84d5-6543f504800d","parentUid":null,"_options":{"disableCheckbox":false}},{"key":"tenantId","label":"登录机构ID","type":"number","typeValue":"number","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":null,"uid":"3fc8adef-a08a-4d61-85c2-f6f95d481cb7","parentUid":null,"_options":{"disableCheckbox":false}}],"requestContentType":"application/json","responses":[{"key":"code","label":"状态码","type":"number","typeValue":"number","children":[],"childType":"","description":"","required":true,"example":"","defaultValue":null,"uid":"d9d1565d-d9c6-47c2-9f02-3b4d43eb3512","parentUid":null,"_options":{"disableCheckbox":false}},{"key":"data","label":"业务数据","type":"object","typeValue":"object","children":[{"key":"accessToken","label":"授权令牌","type":"string","typeValue":"string","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":"''","uid":"65d45dbd-c79c-4439-8a1d-53fff2a1923c","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}},{"key":"currentTenant","label":"当前登录机构ID","type":"number","typeValue":"number","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":null,"uid":"88a3544f-a9f3-4717-a4fe-cb262ba314bb","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}},{"key":"nickName","label":"账户昵称","type":"string","typeValue":"string","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":"''","uid":"adf3c645-35c9-40fe-8e98-a073239b4f8f","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}},{"key":"permissions","label":"权限集合,登录成功返回","type":"array","typeValue":"Array<string>","children":[],"childType":"string","description":"","required":false,"example":"","defaultValue":"[]","uid":"d597856b-b450-45b0-a515-e5845b9b26a9","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}},{"key":"submitToken","label":"登录确认令牌，若存在多机构不直接返回accessToken，通过SubmitToken确认登录机构","type":"string","typeValue":"string","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":"''","uid":"94da4b98-0107-49b8-8184-e5eb2d7f93eb","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}},{"key":"tenants","label":"账户关联机构","type":"array","typeValue":"Array<object>","children":[{"key":"id","type":"number","typeValue":"number","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":null,"uid":"2cc2d669-51a5-4794-8826-b3f7e4351499","parentUid":"41d61152-85e6-40d5-b0c1-b991b9270fc6","_options":{"disableCheckbox":false}},{"key":"lastLoginTime","type":"string","typeValue":"string","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":"''","uid":"0099ed3d-bf58-48cf-a386-55f7fdc2c9ea","parentUid":"41d61152-85e6-40d5-b0c1-b991b9270fc6","_options":{"disableCheckbox":false}},{"key":"tenantCode","type":"string","typeValue":"string","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":"''","uid":"f532552a-489c-4350-806e-a8c3113b18e6","parentUid":"41d61152-85e6-40d5-b0c1-b991b9270fc6","_options":{"disableCheckbox":false}},{"key":"tenantName","type":"string","typeValue":"string","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":"''","uid":"e8fbb381-baca-4fb0-aa8e-bf7013b43ce2","parentUid":"41d61152-85e6-40d5-b0c1-b991b9270fc6","_options":{"disableCheckbox":false}}],"childType":"","description":"","required":false,"example":"","defaultValue":"[]","uid":"41d61152-85e6-40d5-b0c1-b991b9270fc6","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}},{"key":"type","label":"登录类型，1：账号密码，2：短信验证码","type":"number","typeValue":"number","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":1,"uid":"b27d11bd-036a-4694-b7f2-cefc6b2f7a00","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}},{"key":"userId","label":"账户ID","type":"number","typeValue":"number","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":null,"uid":"0f0ad715-6c62-4b7f-9616-ac61025adddb","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}},{"key":"userType","label":"账户类型，0：管理用户，1：机构用户","type":"number","typeValue":"number","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":0,"uid":"0128697d-094c-42b5-a79c-8955eeb3b461","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}},{"key":"username","label":"账户名","type":"string","typeValue":"string","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":"''","uid":"2dfdbbcb-9083-496d-b580-5d377e5bc28d","parentUid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","_options":{"disableCheckbox":false}}],"childType":"","description":"","required":false,"example":"","defaultValue":"{}","uid":"532dc114-d431-4dca-aa1e-9f686ef97b1f","parentUid":null,"_options":{"disableCheckbox":false}},{"key":"msg","label":"消息内容","type":"string","typeValue":"string","children":[],"childType":"","description":"","required":true,"example":"","defaultValue":"''","uid":"1c6f0459-460e-47bf-aa68-1c90a5014e93","parentUid":null,"_options":{"disableCheckbox":false}},{"key":"success","type":"boolean","typeValue":"boolean","children":[],"childType":"","description":"","required":false,"example":"","defaultValue":false,"uid":"ff0494ec-8c8a-49ba-96ea-54e4cb042b23","parentUid":null,"_options":{"disableCheckbox":false}},{"key":"time","label":"时间戳","type":"number","typeValue":"number","children":[],"childType":"","description":"","required":true,"example":"","defaultValue":null,"uid":"170d1998-722c-4ccf-8680-3c9721709fcf","parentUid":null,"_options":{"disableCheckbox":false}}],"label":"登录确认","url":"/token/tenant/submit","methodUrl":"/token/tenant/submit","_options":{"active":false}});
+export const getMockApiData: any = () =>
+  cloneDeep({
+    uid: 'be235f91-eec1-42fb-9df0-d1871e88b906',
+    parentUid: '8f0f42e5-ac1b-489f-b33c-6f225e42bfab',
+    method: 'post',
+    methodName: 'postSubmit',
+    requests: [
+      {
+        key: 'submitToken',
+        label: '登录确认令牌',
+        type: 'string',
+        typeValue: 'string',
+        children: [],
+        childType: '',
+        description: '',
+        required: false,
+        example: '',
+        defaultValue: "''",
+        uid: 'b1cceea0-e91c-491e-84d5-6543f504800d',
+        parentUid: null,
+        _options: { disableCheckbox: false },
+      },
+      {
+        key: 'tenantId',
+        label: '登录机构ID',
+        type: 'number',
+        typeValue: 'number',
+        children: [],
+        childType: '',
+        description: '',
+        required: false,
+        example: '',
+        defaultValue: null,
+        uid: '3fc8adef-a08a-4d61-85c2-f6f95d481cb7',
+        parentUid: null,
+        _options: { disableCheckbox: false },
+      },
+    ],
+    requestContentType: 'application/json',
+    responses: [
+      {
+        key: 'code',
+        label: '状态码',
+        type: 'number',
+        typeValue: 'number',
+        children: [],
+        childType: '',
+        description: '',
+        required: true,
+        example: '',
+        defaultValue: null,
+        uid: 'd9d1565d-d9c6-47c2-9f02-3b4d43eb3512',
+        parentUid: null,
+        _options: { disableCheckbox: false },
+      },
+      {
+        key: 'data',
+        label: '业务数据',
+        type: 'object',
+        typeValue: 'object',
+        children: [
+          {
+            key: 'accessToken',
+            label: '授权令牌',
+            type: 'string',
+            typeValue: 'string',
+            children: [],
+            childType: '',
+            description: '',
+            required: false,
+            example: '',
+            defaultValue: "''",
+            uid: '65d45dbd-c79c-4439-8a1d-53fff2a1923c',
+            parentUid: '532dc114-d431-4dca-aa1e-9f686ef97b1f',
+            _options: { disableCheckbox: false },
+          },
+          {
+            key: 'currentTenant',
+            label: '当前登录机构ID',
+            type: 'number',
+            typeValue: 'number',
+            children: [],
+            childType: '',
+            description: '',
+            required: false,
+            example: '',
+            defaultValue: null,
+            uid: '88a3544f-a9f3-4717-a4fe-cb262ba314bb',
+            parentUid: '532dc114-d431-4dca-aa1e-9f686ef97b1f',
+            _options: { disableCheckbox: false },
+          },
+          {
+            key: 'nickName',
+            label: '账户昵称',
+            type: 'string',
+            typeValue: 'string',
+            children: [],
+            childType: '',
+            description: '',
+            required: false,
+            example: '',
+            defaultValue: "''",
+            uid: 'adf3c645-35c9-40fe-8e98-a073239b4f8f',
+            parentUid: '532dc114-d431-4dca-aa1e-9f686ef97b1f',
+            _options: { disableCheckbox: false },
+          },
+          {
+            key: 'permissions',
+            label: '权限集合,登录成功返回',
+            type: 'array',
+            typeValue: 'Array<string>',
+            children: [],
+            childType: 'string',
+            description: '',
+            required: false,
+            example: '',
+            defaultValue: '[]',
+            uid: 'd597856b-b450-45b0-a515-e5845b9b26a9',
+            parentUid: '532dc114-d431-4dca-aa1e-9f686ef97b1f',
+            _options: { disableCheckbox: false },
+          },
+          {
+            key: 'submitToken',
+            label:
+              '登录确认令牌，若存在多机构不直接返回accessToken，通过SubmitToken确认登录机构',
+            type: 'string',
+            typeValue: 'string',
+            children: [],
+            childType: '',
+            description: '',
+            required: false,
+            example: '',
+            defaultValue: "''",
+            uid: '94da4b98-0107-49b8-8184-e5eb2d7f93eb',
+            parentUid: '532dc114-d431-4dca-aa1e-9f686ef97b1f',
+            _options: { disableCheckbox: false },
+          },
+          {
+            key: 'tenants',
+            label: '账户关联机构',
+            type: 'array',
+            typeValue: 'Array<object>',
+            children: [
+              {
+                key: 'id',
+                type: 'number',
+                typeValue: 'number',
+                children: [],
+                childType: '',
+                description: '',
+                required: false,
+                example: '',
+                defaultValue: null,
+                uid: '2cc2d669-51a5-4794-8826-b3f7e4351499',
+                parentUid: '41d61152-85e6-40d5-b0c1-b991b9270fc6',
+                _options: { disableCheckbox: false },
+              },
+              {
+                key: 'lastLoginTime',
+                type: 'string',
+                typeValue: 'string',
+                children: [],
+                childType: '',
+                description: '',
+                required: false,
+                example: '',
+                defaultValue: "''",
+                uid: '0099ed3d-bf58-48cf-a386-55f7fdc2c9ea',
+                parentUid: '41d61152-85e6-40d5-b0c1-b991b9270fc6',
+                _options: { disableCheckbox: false },
+              },
+              {
+                key: 'tenantCode',
+                type: 'string',
+                typeValue: 'string',
+                children: [],
+                childType: '',
+                description: '',
+                required: false,
+                example: '',
+                defaultValue: "''",
+                uid: 'f532552a-489c-4350-806e-a8c3113b18e6',
+                parentUid: '41d61152-85e6-40d5-b0c1-b991b9270fc6',
+                _options: { disableCheckbox: false },
+              },
+              {
+                key: 'tenantName',
+                type: 'string',
+                typeValue: 'string',
+                children: [],
+                childType: '',
+                description: '',
+                required: false,
+                example: '',
+                defaultValue: "''",
+                uid: 'e8fbb381-baca-4fb0-aa8e-bf7013b43ce2',
+                parentUid: '41d61152-85e6-40d5-b0c1-b991b9270fc6',
+                _options: { disableCheckbox: false },
+              },
+            ],
+            childType: '',
+            description: '',
+            required: false,
+            example: '',
+            defaultValue: '[]',
+            uid: '41d61152-85e6-40d5-b0c1-b991b9270fc6',
+            parentUid: '532dc114-d431-4dca-aa1e-9f686ef97b1f',
+            _options: { disableCheckbox: false },
+          },
+          {
+            key: 'type',
+            label: '登录类型，1：账号密码，2：短信验证码',
+            type: 'number',
+            typeValue: 'number',
+            children: [],
+            childType: '',
+            description: '',
+            required: false,
+            example: '',
+            defaultValue: 1,
+            uid: 'b27d11bd-036a-4694-b7f2-cefc6b2f7a00',
+            parentUid: '532dc114-d431-4dca-aa1e-9f686ef97b1f',
+            _options: { disableCheckbox: false },
+          },
+          {
+            key: 'userId',
+            label: '账户ID',
+            type: 'number',
+            typeValue: 'number',
+            children: [],
+            childType: '',
+            description: '',
+            required: false,
+            example: '',
+            defaultValue: null,
+            uid: '0f0ad715-6c62-4b7f-9616-ac61025adddb',
+            parentUid: '532dc114-d431-4dca-aa1e-9f686ef97b1f',
+            _options: { disableCheckbox: false },
+          },
+          {
+            key: 'userType',
+            label: '账户类型，0：管理用户，1：机构用户',
+            type: 'number',
+            typeValue: 'number',
+            children: [],
+            childType: '',
+            description: '',
+            required: false,
+            example: '',
+            defaultValue: 0,
+            uid: '0128697d-094c-42b5-a79c-8955eeb3b461',
+            parentUid: '532dc114-d431-4dca-aa1e-9f686ef97b1f',
+            _options: { disableCheckbox: false },
+          },
+          {
+            key: 'username',
+            label: '账户名',
+            type: 'string',
+            typeValue: 'string',
+            children: [],
+            childType: '',
+            description: '',
+            required: false,
+            example: '',
+            defaultValue: "''",
+            uid: '2dfdbbcb-9083-496d-b580-5d377e5bc28d',
+            parentUid: '532dc114-d431-4dca-aa1e-9f686ef97b1f',
+            _options: { disableCheckbox: false },
+          },
+        ],
+        childType: '',
+        description: '',
+        required: false,
+        example: '',
+        defaultValue: '{}',
+        uid: '532dc114-d431-4dca-aa1e-9f686ef97b1f',
+        parentUid: null,
+        _options: { disableCheckbox: false },
+      },
+      {
+        key: 'msg',
+        label: '消息内容',
+        type: 'string',
+        typeValue: 'string',
+        children: [],
+        childType: '',
+        description: '',
+        required: true,
+        example: '',
+        defaultValue: "''",
+        uid: '1c6f0459-460e-47bf-aa68-1c90a5014e93',
+        parentUid: null,
+        _options: { disableCheckbox: false },
+      },
+      {
+        key: 'success',
+        type: 'boolean',
+        typeValue: 'boolean',
+        children: [],
+        childType: '',
+        description: '',
+        required: false,
+        example: '',
+        defaultValue: false,
+        uid: 'ff0494ec-8c8a-49ba-96ea-54e4cb042b23',
+        parentUid: null,
+        _options: { disableCheckbox: false },
+      },
+      {
+        key: 'time',
+        label: '时间戳',
+        type: 'number',
+        typeValue: 'number',
+        children: [],
+        childType: '',
+        description: '',
+        required: true,
+        example: '',
+        defaultValue: null,
+        uid: '170d1998-722c-4ccf-8680-3c9721709fcf',
+        parentUid: null,
+        _options: { disableCheckbox: false },
+      },
+    ],
+    label: '登录确认',
+    url: '/token/tenant/submit',
+    methodUrl: '/token/tenant/submit',
+    _options: { active: false },
+  });
