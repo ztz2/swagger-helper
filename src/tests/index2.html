@@ -55,6 +55,68 @@
   设置了固定宽度，未设置固定高度，高度被拉伸至父元素的高度
 </div>
 <div class="box3">设置了固定宽度，未设置固定高度，子元素自适应高度</div>
+<script>
+
+</script>
+<script>
+  /** 此段为随机生成数据 -- 开始 **/
+  // 随机打乱数组
+  Array.prototype.shuffle = function() {
+    let input = this;
+    for (let i = input.length-1; i >=0; i--) {
+      let randomIndex = Math.floor(Math.random()*(i+1));
+      let itemAtIndex = input[randomIndex];
+      input[randomIndex] = input[i];
+      input[i] = itemAtIndex;
+    }
+    return input;
+  }
+  // 随机生产UID
+  const getUid = () => {
+    function S4() {return (((1+Math.random())*0x10000)|0).toString(16).substring(1);}
+    return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+  }
+  const NUM = 10000;
+  const payTypeList = Array.from({length: NUM}).map(() => getUid());
+  const mockDataA11 = JSON.parse(JSON.stringify(payTypeList)).shuffle().map((type) => ({payType: type, payDate: Date.now()}));
+  const mockDataB11 = JSON.parse(JSON.stringify(payTypeList)).shuffle().map((type) => ({payType: type, payDate: Date.now()}));
+  const mockDataA22 = JSON.parse(JSON.stringify(mockDataA11));
+  const mockDataB22 = JSON.parse(JSON.stringify(mockDataB11));
+  /** 此段为随机生成数据 -- 结束 **/
+  // 记忆化搜索，空间换时间，优化之后变成：O(n)
+  function mergePayDate (a = [], b = []) {
+    const memo = {};
+    for (const v1 of a) {
+      memo[v1.payType] = v1;
+    }
+    for (const v2 of b) {
+      if (memo[v2.payType]) {
+        v2.payDate = memo[v2.payType].payDate
+      }
+    }
+    return b;
+  }
+
+  // 常规双层循
+  function normal (a = [], b = []) {
+    for (const v1 of a) {
+      for (const v2 of b) {
+          if (v1.payType === v2.payDate) {
+            v1.payDate = v2.payDate;
+            break;
+          }
+      }
+    }
+  }
+
+  console.log(`当前数据量：${NUM}`);
+  console.time('记忆化搜索耗时：');
+  mergePayDate(mockDataA11, mockDataB11);
+  console.timeEnd('记忆化搜索耗时：');
+  console.time('常规双层循环耗时：');
+  normal(mockDataA22, mockDataB22);
+  console.timeEnd('常规双层循环耗时：');
+</script>
 </div>
 </body>
 </html>
