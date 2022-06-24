@@ -10,6 +10,7 @@ export default defineConfig({
     type: 'none',
   },
   routes,
+  favicon: 'https://s1.ax1x.com/2022/06/24/jiXUUS.png',
   fastRefresh: {},
   externals: {
     lodash: '_',
