@@ -101,7 +101,9 @@ const DialogReqResp: FC<DialogReqRespProps> = ({
   // 弹窗状态变化
   useEffect(() => {
     if (visible) {
-      onFinish(null, true);
+      resetOptions((o: ReqRespOptions) => {
+        onFinish(o, true);
+      });
     }
   }, [visible]);
 
@@ -171,10 +173,14 @@ const DialogReqResp: FC<DialogReqRespProps> = ({
     }
   }, [reqTree, respTree]);
 
-  const resetOptions = () => {
+  const resetOptions = (callback?: (o: ReqRespOptions) => void) => {
     const defaultTpl = tplList.find((t: Tpl) => t.isDefault);
     const defaultUid = defaultTpl ? defaultTpl.uid : tplList?.[0]?.uid ?? '';
-    const o = { ...options, ...(project?.options ?? {}), tplUid: defaultUid };
+    const o: ReqRespOptions = {
+      ...options,
+      ...(project?.options ?? {}),
+      tplUid: defaultUid,
+    };
     if (!selectApi && items?.length > 0) {
       const api = items[0];
       o.apiUid = api.uid;
@@ -183,6 +189,7 @@ const DialogReqResp: FC<DialogReqRespProps> = ({
     }
     setOptions(o);
     formRef?.setFieldsValue?.(o);
+    callback?.(o);
   };
 
   const handleAdd = () => {
@@ -206,7 +213,7 @@ const DialogReqResp: FC<DialogReqRespProps> = ({
           selectApi,
           processFieldTree(reqTree, reqCheckedNodes),
           processFieldTree(respTree, respCheckedNodes),
-          values,
+          o,
           () => {
             if (!isDefaultAction) {
               message.success('已生成');

@@ -68,16 +68,23 @@ const DialogApi: FC<DialogApiProps> = ({
   // 弹窗状态变化
   useEffect(() => {
     if (visible) {
-      onFinish(null, true);
+      resetOptions((o) => {
+        onFinish(o, true);
+      });
     }
   }, [visible]);
 
-  const resetOptions = () => {
+  const resetOptions = (callback?: (o: DialogApiOptions) => void) => {
     const defaultAPI = apiTplList.find((t: Tpl) => t.isDefault);
     const defaultUid = defaultAPI ? defaultAPI.uid : apiTplList?.[0]?.uid ?? '';
-    const o = { ...options, ...(project?.options ?? {}), tplUid: defaultUid };
+    const o: DialogApiOptions = {
+      ...options,
+      ...(project?.options ?? {}),
+      tplUid: defaultUid,
+    };
     setOptions(o);
     formRef?.setFieldsValue?.(o);
+    callback?.(o);
   };
 
   const handleAdd = () => {

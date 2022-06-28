@@ -75,7 +75,8 @@ type Options = {
  * @return [] { Array<string> } 返回数组，里面每一项字符串都是一个模板
  */
 function renderTpl (api, requests, responses, options) {
-   // 模板引擎基于 art-template 使用，template 变量就是对art-template的引用，更多语法方法参考官方文档：https://github.com/aui/art-template
+  console.log('调用ing：', arguments);
+  // 模板引擎基于 art-template 使用，template 变量就是对art-template的引用，更多语法方法参考官方文档：https://github.com/aui/art-template
   // 函数中可以使用Lodash工具包所有功能，比如 cloneDeep，使用方式：lodash.cloneDeep
   const result = [];
   options = lodash.merge({
@@ -242,6 +243,111 @@ export default {
 `;
 /**------------------------------  Vue-表格模板[通用表格组件]--开始  ------------------------------**/
 
+/**------------------------------  内置(Vue3-表格模板[element-plus通用表格组件])--开始  ------------------------------**/
+export const REQ_RESP_TPL2002 =
+  COMMON_HEAD +
+  `
+  const tpl = \`<template>
+  <el-space direction="vertical" alignment="flex-start" fill>{{if requests.length > 0}}
+    <!-- 搜索条件区域 -->
+    <el-form :model="queryParams" label-width="80px" inline>{{if options.grid}}
+      <el-row :gutter="30">{{/if}}{{each requests}}{{if options.grid}}
+        <el-col :span="8">{{/if}}
+      {{if options.grid}}    {{/if}}<el-form-item{{if options.generateLabel}} label="{{if $value.label}}{{$value.label}}{{else}}{{$value.key}}{{/if}}"{{/if}} prop="{{$value.key}}">
+        {{if options.grid}}    {{/if}}<el-input v-model="queryParams.{{$value.key}}"{{if options.placeholder}} placeholder="请输入{{if $value.label}}{{$value.label}}{{/if}}"{{/if}}{{if options.maxlength}} maxlength="{{options.maxlength}}"{{/if}} clearable />
+      {{if options.grid}}    {{/if}}</el-form-item>{{if options.grid}}
+        </el-col>{{/if}}{{/each}}{{if options.grid}}
+        <el-col :span="8">{{/if}}
+      {{if options.grid}}    {{/if}}<el-form-item>
+        {{if options.grid}}    {{/if}}<el-button @click="ztzTableRef.refreshTable({ resetPageNum: true, resetQueryParams: true })">重置</el-button>
+        {{if options.grid}}    {{/if}}<el-button @click="ztzTableRef.refreshTable({ resetPageNum: true })" type="primary">搜索</el-button>
+      {{if options.grid}}    {{/if}}</el-form-item>{{if options.grid}}
+        </el-col>
+      </el-row>{{/if}}
+    </el-form>{{/if}}{{if options.crud}}
+    <!-- 操作区域 -->
+    <div>
+      <el-button @click="ztzTableRef.showAddDialog()">添加</el-button>
+    </div>{{/if}}
+    <!-- 表格区域 -->
+    <ztz-table{{if options.crud}}
+      :crud="crud"{{/if}}
+      :columns="columns"
+      :data="pageListApi"
+      :pagination="pagination"
+      :query-params="queryParams"
+      ref="ztzTableRef"
+      list-key="content"
+      total-key="total"
+    />
+  </el-space>
+</template>
+
+<script setup>
+import { ref, reactive } from 'vue'{{if options.semi}};{{/if}}{{if options.crud}}
+import {
+  addApi,
+  editApi,
+  deleteApi,
+  detailApi,
+  pageListApi,
+} from '@/api'{{if options.semi}};{{/if}}{{else}}
+import { pageListApi } from '@/api'{{if options.semi}};{{/if}}{{/if}}
+import FormEntityComponent from './components/entity'{{if options.semi}};{{/if}}
+
+const ztzTableRef = ref(null){{if options.semi}};{{/if}}
+{{if options.crud}}
+// CRUD配置
+const crud = reactive({
+  add: {
+    api: addApi,
+    formComponent: FormEntityComponent,
+  },
+  edit: {
+    api: editApi,
+    detailApi,
+    formComponent: FormEntityComponent,
+  },
+  delete: {
+    api: deleteApi,
+  },
+}){{if options.semi}};{{/if}}
+{{/if}}
+// 表格配置
+const columns = reactive([
+  { type: 'selection' },{{each responses}}
+  { label: '{{if $value.label}}{{$value.label}}{{else}}{{$value.key}}{{/if}}', prop: '{{$value.key}}' },{{/each}}
+  {
+    label: '操作',
+    width: '210',
+    render: (h, { row }) => {
+      return (<el-button type='text' class='padding--empty'>自定义操作</el-button>){{if options.semi}};{{/if}}
+    },
+  },
+]){{if options.semi}};{{/if}}
+
+// 可选的分页配置
+const pagination = reactive({
+  // 当前页
+  pageNum: 1,
+  // 分页数
+  pageSize: 2,
+}){{if options.semi}};{{/if}}
+
+// 搜索条件
+const queryParams = reactive({{if requests.length === 0}}{}{{else}}{
+  {{each requests}}{{if $value.label || $value.typeValue}}// {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n  {{/if}}{{$value.key}}: {{$value.defaultValue}}{{if $index !== requests.length - 1}},\n  {{/if}}{{/each}}
+}{{/if}}){{if options.semi}};{{/if}}
+</script>
+\`;
+console.log('optio', options);
+  result.push(template.render(tpl, { requests, responses, options }));
+
+  return result;
+};
+`;
+/**------------------------------  内置(Vue3-表格模板[element-plus通用表格组件])--开始  ------------------------------**/
+
 /**------------------------------  Vue-实体类模板[通用表单组件]--开始  ------------------------------**/
 export const REQ_RESP_TPL2100 =
   COMMON_HEAD +
@@ -366,6 +472,76 @@ export default {
     }
   }
 }
+</script>
+\`;
+  const requiredFieldList = requests.filter((t) => t.required);
+
+  result.push(template.render(tpl, { requests, requiredFieldList, options }))
+
+  return result;
+};
+`;
+/**------------------------------  Vue-实体类模板[element-ui表单]--结束  ------------------------------**/
+
+/**------------------------------  Vue-实体类模板[element-ui表单]--开始  ------------------------------**/
+export const REQ_RESP_TPL2102 =
+  COMMON_HEAD +
+  `
+  const tpl =
+\`<template>
+  <el-form
+    :model="formEntity"
+    :rules="formRules"
+    ref="formRef"
+    label-width="100px"
+  >{{if options.grid}}
+    <el-row :gutter="30">{{/if}}{{each requests}}{{if options.grid}}
+      <el-col :span="8">{{/if}}
+    {{if options.grid}}    {{/if}}<el-form-item{{if options.generateLabel}} label="{{if $value.label}}{{$value.label}}{{else}}{{$value.key}}{{/if}}"{{/if}} prop="{{$value.key}}">
+      {{if options.grid}}    {{/if}}<el-input v-model="queryParams.{{$value.key}}"{{if options.placeholder}} placeholder="请输入{{if $value.label}}{{$value.label}}{{/if}}"{{/if}}{{if options.maxlength}} maxlength="{{options.maxlength}}"{{/if}} clearable />
+    {{if options.grid}}    {{/if}}</el-form-item>{{if options.grid}}
+      </el-col>{{/if}}{{/each}}{{if options.grid}}
+    </el-row>{{/if}}
+  </el-form>
+</template>
+
+<script setup>
+import {
+  ref,
+  reactive,
+  defineExpose,
+  watchEffect,
+  defineProps,
+} from 'vue'{{if options.semi}};{{/if}}
+
+const props = defineProps({
+  // 当修改的时候，实体表单模型通过data传递过来，用于数据回显
+  data: {
+    type: Object,
+    default: () => ({}),
+  },
+}){{if options.semi}};{{/if}}
+const formRef = ref(){{if options.semi}};{{/if}}
+// 表单实体模型对象
+const formEntity = reactive({{if requests.length === 0}}{}{{else}}{
+  {{each requests}}{{if $value.label || $value.typeValue}}// {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n  {{/if}}{{$value.key}}: {{$value.defaultValue}},{{if $index !== requests.length - 1}}\n  {{/if}}{{/each}}
+}{{/if}}){{if options.semi}};{{/if}}
+const formRules = reactive({
+  address: [
+    { required: true, message: '必填项', trigger: 'blur' },
+  ],
+}){{if options.semi}};{{/if}}
+
+// 数据回显到表单实体模型
+watchEffect(() => Object.entries(props.data).forEach(([k, v]) => { formEntity[k] = v; })){{if options.semi}};{{/if}}
+
+// 必须暴露的两个方法
+defineExpose({
+  // 获取表单实例
+  getFormRef: () => formRef.value,
+  // 获取表单模型
+  getFormModel: () => formEntity,
+}){{if options.semi}};{{/if}}
 </script>
 \`;
   const requiredFieldList = requests.filter((t) => t.required);

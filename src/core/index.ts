@@ -369,6 +369,7 @@ export const generateTpl = function (tpl: string, ...params: Array<any>) {
     if (typeof exe.renderTpl !== 'function') {
       throw Error('模板中缺少 renderTpl 函数');
     }
+    console.log('调用前：', params);
     // @ts-ignore
     result = exe.renderTpl.apply(null, params);
     if (!Array.isArray(result)) {
