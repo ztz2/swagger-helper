@@ -243,6 +243,103 @@ export default {
 `;
 /**------------------------------  Vue-表格模板[通用表格组件]--开始  ------------------------------**/
 
+/**------------------------------ 内置(ZtzTable组件-表格)--开始  ------------------------------**/
+export const REQ_RESP_TPL2003 =
+  COMMON_HEAD +
+  `
+  const tpl = \`<template>
+  <div>{{if requests.length > 0}}
+    <!-- 搜索条件 -->
+    <el-form :model="queryParams" label-width="54px" inline>{{if options.grid}}
+      <el-row :gutter="30">{{/if}}{{if requests[0]}}
+      {{if options.grid}}  <el-col :span="span">\n            {{/if}}<el-form-item{{if options.generateLabel}} label="{{if requests[0].label}}{{requests[0].label}}{{else}}{{requests[0].key}}{{/if}}"{{/if}} prop="{{requests[0].key}}">
+        {{if options.grid}}    {{/if}}<NrSelect v-model="queryParams.{{requests[0].key}}" :options="options.{{requests[0].key}}"{{if options.placeholder}} placeholder="请选择{{if requests[0].label}}{{requests[0].label}}{{/if}}"{{/if}} />
+      {{if options.grid}}    {{/if}}</el-form-item>{{if options.grid}}\n          </el-col>{{/if}}{{/if}}{{each requests.slice(1)}}{{if options.grid}}\n          <el-col :span="span">\n    {{else}}\n{{/if}}        <el-form-item{{if options.generateLabel}} label="{{if $value.label}}{{$value.label}}{{else}}{{$value.key}}{{/if}}"{{/if}} prop="{{$value.key}}">
+        {{if options.grid}}    {{/if}}<el-input v-model="queryParams.{{$value.key}}"{{if options.placeholder}} placeholder="请输入{{if $value.label}}{{$value.label}}{{/if}}"{{/if}}{{if options.maxlength}} maxlength="{{options.maxlength}}"{{/if}} clearable />
+      {{if options.grid}}    {{/if}}</el-form-item>{{if options.grid}}\n          </el-col>{{/if}}{{/each}}{{if options.grid}}\n        </el-row>{{/if}}
+    </el-form>{{/if}}
+    <div>
+      <el-button @click="ztzTableRef.showAddDialog()">添加</el-button>
+    </div>
+    <ztz-table
+      :crud="crud"
+      :columns="columns"
+      :data="queryApi"
+      :pagination="pagination"
+      :query-params="queryParams"
+      ref="ztzTableRef"
+      list-key="content"
+      total-key="total"
+    />
+  </div>
+</template>
+
+<script lang='ts' setup>
+import { ref, reactive } from 'vue'{{if options.semi}};{{/if}}
+import {
+  ICrud,
+  TableColumn,
+} from 'ztz-table'{{if options.semi}};{{/if}}
+import {
+  {{if options.crud}}add as addApi,
+  del as delApi,
+  edit as editApi,
+  detail as detailApi,
+  {{/if}}query as queryApi,
+} from '@/api/system/user'{{if options.semi}};{{/if}}{{if options.crud}}
+import FormComponent from './form-component.vue'{{if options.semi}};{{/if}}{{/if}}
+
+const ztzTableRef = ref(null){{if options.semi}};{{/if}}
+
+// 表格配置
+const columns = reactive<Array<TableColumn>>([
+  { type: 'selection' },{{each responses}}
+  { label: '{{if $value.label}}{{$value.label}}{{else}}{{$value.key}}{{/if}}', prop: '{{$value.key}}' },{{/each}}
+  {
+    label: '操作',
+    width: '210',
+    render: ({ row }) => {
+      return (<el-button type='text' class='padding--empty'>自定义操作</el-button>){{if options.semi}};{{/if}}
+    },
+  },
+]){{if options.semi}};{{/if}}{{if options.crud}}
+
+const crud = reactive<ICrud>({
+  add: {
+    api: addApi,
+    formComponent: FormComponent,
+  },
+  edit: {
+    api: editApi,
+    detailApi,
+    formComponent: FormComponent,
+  },
+  delete: {
+    api: deleteApi,
+  },
+}){{if options.semi}};{{/if}}
+
+// 分页配置
+const pagination = reactive({
+  // 当前页
+  pageNum: 1,
+  // 分页数
+  pageSize: 10,
+}){{if options.semi}};{{/if}}{{/if}}
+
+// 搜索条件
+const queryParams = reactive({{if requests.length === 0}}{}{{else}}{
+  {{each requests}}{{if $value.label || $value.typeValue}}// {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n  {{/if}}{{$value.key}}: {{$value.defaultValue}}{{if $index !== requests.length - 1}},\n  {{/if}}{{/each}}
+}{{/if}}){{if options.semi}};{{/if}}
+\`;
+
+  result.push(template.render(tpl, { requests, responses, options }));
+
+  return result;
+};
+`;
+/**------------------------------  内置(ZtzTable组件-表格)--开始  ------------------------------**/
+
 /**------------------------------  内置(Vue3-表格模板[element-plus通用表格组件])--开始  ------------------------------**/
 export const REQ_RESP_TPL2002 =
   COMMON_HEAD +
@@ -553,6 +650,76 @@ defineExpose({
 `;
 /**------------------------------  Vue-实体类模板[element-ui表单]--结束  ------------------------------**/
 
+/**------------------------------  Vue-实体类模板[element-ui表单]--开始  ------------------------------**/
+export const REQ_RESP_TPL2103 =
+  COMMON_HEAD +
+  `
+  const tpl =
+\`<template>
+  <el-form
+    :model="formEntity"
+    :rules="formRules"
+    ref="formRef"
+    label-width="100px"
+  >{{if options.grid}}
+    <el-row :gutter="30">{{/if}}{{each requests}}{{if options.grid}}
+      <el-col :span="8">{{/if}}
+    {{if options.grid}}    {{/if}}<el-form-item{{if options.generateLabel}} label="{{if $value.label}}{{$value.label}}{{else}}{{$value.key}}{{/if}}"{{/if}} prop="{{$value.key}}">
+      {{if options.grid}}    {{/if}}<el-input v-model="formEntity.{{$value.key}}"{{if options.placeholder}} placeholder="请输入{{if $value.label}}{{$value.label}}{{/if}}"{{/if}}{{if options.maxlength}} maxlength="{{options.maxlength}}"{{/if}} clearable />
+    {{if options.grid}}    {{/if}}</el-form-item>{{if options.grid}}
+      </el-col>{{/if}}{{/each}}{{if options.grid}}
+    </el-row>{{/if}}
+  </el-form>
+</template>
+
+<script setup>
+import {
+  ref,
+  reactive,
+  defineExpose,
+  watchEffect,
+  defineProps,
+} from 'vue'{{if options.semi}};{{/if}}
+
+const props = defineProps({
+  // 当修改的时候，实体表单模型通过data传递过来，用于数据回显
+  data: {
+    type: Object,
+    default: () => ({}),
+  },
+}){{if options.semi}};{{/if}}
+const formRef = ref(null){{if options.semi}};{{/if}}
+// 表单实体模型对象
+const formEntity = reactive({{if requests.length === 0}}{}{{else}}{
+  {{each requests}}{{if $value.label || $value.typeValue}}// {{if $value.typeValue}}{ <%=$value.typeValue%> } {{/if}}{{if $value.label}}{{$value.label}}{{/if}}\n  {{/if}}{{$value.key}}: {{$value.defaultValue}},{{if $index !== requests.length - 1}}\n  {{/if}}{{/each}}
+}{{/if}}){{if options.semi}};{{/if}}
+const formRules = reactive({{if requiredFieldList.length === 0}}{}{{else}}{
+{{each requiredFieldList}}  {{$value.key}}: [{{if $value.label}} // {{$value.label}}{{/if}}
+    { required: true, message: '必填项', trigger: 'blur' }
+  ],{{if $index < requiredFieldList.length - 1}}\n{{/if}}{{/each}}
+},{{/if}}){{if options.semi}};{{/if}}
+
+// 数据回显到表单实体模型
+watchEffect(() => Object.entries(props.data).forEach(([k, v]) => { formEntity[k] = v; })){{if options.semi}};{{/if}}
+
+// 必须暴露的两个方法
+defineExpose({
+  // 获取表单实例
+  getFormRef: () => formRef.value,
+  // 获取表单模型
+  getFormModel: () => formEntity,
+}){{if options.semi}};{{/if}}
+</script>
+\`;
+  const requiredFieldList = requests.filter((t) => t.required);
+
+  result.push(template.render(tpl, { requests, requiredFieldList, options }))
+
+  return result;
+};
+`;
+/**------------------------------  Vue-实体类模板[element-ui表单]--结束  ------------------------------**/
+
 /**------------------------------  TS-请求数据&响应数据[Interface]--结束  ------------------------------**/
 export const REQ_RESP_TPL5000 =
   COMMON_HEAD +
@@ -583,14 +750,14 @@ export const REQ_RESP_TPL5000 =
   // 请求数据Interface生成
   let reqTpl = renderInterface(requests, options);
   if (reqTpl.trim().replace(/\\n/gim, '').length > 0) {
-    reqTpl = \`interface \${apiName}ReqInterface \${reqTpl}\n\`;
+    reqTpl = \`interface IReq\${apiName} \${reqTpl}\n\`;
   }
   result.push(reqTpl);
 
   // 响应数据Interface生成
    let respTpl = renderInterface(responses, options);
   if (respTpl.trim().replace(/\\n/gim, '').length > 0) {
-    respTpl = \`interface \${apiName}RespInterface \${respTpl}\n\`;
+    respTpl = \`interface IResp\${apiName} \${respTpl}\n\`;
   }
   result.push(respTpl);
 

@@ -55,10 +55,31 @@
   设置了固定宽度，未设置固定高度，高度被拉伸至父元素的高度
 </div>
 <div class="box3">设置了固定宽度，未设置固定高度，子元素自适应高度</div>
+  <ul id="ul">ul
+    <li>li<a href="">a</a></li>
+    <li>li<a href="">a</a></li>
+    <li>li<a href="">a</a></li>
+  </ul>
+  <script>
+    var ul = document.getElementById("ul");
+    ul.onclick = function(event){
+      var tar = event.target;
+      var tagName = tar.nodeName.toLowerCase();
+      console.log("你点击了:"+tagName);
+      console.log(event.target);
+      console.log(event.currentTarget);
+      event.preventDefault();
+    }
+  </script>
 <script>
 
 </script>
 <script>
+
+
+  // 6300
+
+
   /** 此段为随机生成数据 -- 开始 **/
   // 随机打乱数组
   Array.prototype.shuffle = function() {
@@ -76,7 +97,7 @@
     function S4() {return (((1+Math.random())*0x10000)|0).toString(16).substring(1);}
     return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
   }
-  const NUM = 10000;
+  const NUM = 5;
   const payTypeList = Array.from({length: NUM}).map(() => getUid());
   const mockDataA11 = JSON.parse(JSON.stringify(payTypeList)).shuffle().map((type) => ({payType: type, payDate: Date.now()}));
   const mockDataB11 = JSON.parse(JSON.stringify(payTypeList)).shuffle().map((type) => ({payType: type, payDate: Date.now()}));

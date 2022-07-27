@@ -77,7 +77,10 @@ function renderTpl (apiList, options) {
   options = lodash.merge({
     baseURL: '',
     onlyApi: false,
-    cancelSameRequest: false
+    cancelSameRequest: false,
+    respFieldPick: '',
+    limitResType: true,
+    limitRespType: true,
   }, lodash.isPlainObject(options) ? options : {});
 `;
 
@@ -93,7 +96,7 @@ export function {{$value.methodName}}(data) {
     baseURL: {{options.baseURL}},{{/if}}
     url: {{if $value.methodUrl.includes('{')}}\\\`{{else}}'{{/if}}{{$value.methodUrl}}{{if $value.methodUrl.includes('{')}}\\\`{{else}}'{{/if}},
     method: '{{$value.method}}',
-    {{if $value.method === 'get' || $value.requestContentType.includes('application/x-www-form-urlencoded')}}params: data{{else}}data{{/if}}
+    {{if $value.method === 'get' || $value.requestContentType.includes('application/x-www-form-urlencoded')}}params: data,{{else}}data,{{/if}}
   }){{if options.semi}};{{/if}}
 }{{if $index < apiList.length - 1}}\n{{/if}}{{if $index < apiList.length - 1}}\n{{/if}}{{/each}}\n\`;
 
@@ -111,6 +114,40 @@ export function {{$value.methodName}}(data) {
 };
 `;
 /**------------------------------  API方法模板--结束  ------------------------------**/
+
+/**------------------------------  API方法模板--开始  ------------------------------**/
+export const API_TPL9000 =
+  COMMON_HEAD +
+  `
+/********* 内置(API模板【TS】) -- 开始 ***********/
+const tpl1 = \`{{if !options.onlyApi}}{{if options.headText}}{{options.headText}}{{if options.semi}};{{/if}}\n{{/if}}{{/if}}
+{{each apiList}}{{if options.limitResType && $value.reqInterface && $value.reqInterface.value}}{{if $value.label}}// {{$value.label}}-请求数据接口{{/if}}
+export {{$value.reqInterface.value}}{{/if}}{{if options.limitRespType && $value.respInterface && $value.respInterface.value}}{{if $value.label}}// {{$value.label}}-响应数据接口{{/if}}
+export {{$value.respInterface.value}}{{/if}}{{if $value.label}}// {{$value.label}}{{/if}}
+export function {{$value.methodName}}(data: {{if options.limitResType && $value.reqInterface && $value.reqInterface.value}}{{$value.reqInterface.name}}{{else}}any{{/if}}) {
+  return request{{if options.limitRespType && $value.respInterface && $value.respInterface.value}}<{{$value.respInterface.name}}>{{/if}}({<% if (options.cancelSameRequest) { %>
+    cancelSameRequest: true,<% } %>{{if options.baseURL}}
+    baseURL: {{options.baseURL}},{{/if}}
+    url: {{if $value.methodUrl.includes('{')}}\\\`{{else}}'{{/if}}{{$value.methodUrl}}{{if $value.methodUrl.includes('{')}}\\\`{{else}}'{{/if}},
+    method: '{{$value.method}}',
+    {{if $value.method === 'get' || $value.requestContentType.includes('application/x-www-form-urlencoded')}}params: data,{{else}}data,{{/if}}
+  }){{if options.semi}};{{/if}}
+}{{if $index < apiList.length - 1}}\n{{/if}}{{if $index < apiList.length - 1}}\n{{/if}}{{/each}}\n\`;
+
+  result.push(template.render(tpl1, { apiList, options }));
+  /********* 生成API函数方法 -- 结束 ***********/
+
+  /********* 生成API函数导出方法 -- 开始 ***********/
+  const sortBy = lodash.sortBy;
+  apiList = sortBy(apiList, (item) => item.methodName.length);
+  const tpl2 = '{{if apiList.length > 0}}import {<% for(var i = 0; i < apiList.length; i++){ %>{{if apiList[i].label}}\\n  // {{apiList[i].label}}{{/if}}\\n  <%= apiList[i].methodName %>{{if i < apiList.length - 1}},{{/if}}<% } %>\\n} from \\'@/api\\'{{if options.semi}};{{/if}}{{/if}}';
+  result.push(template.render(tpl2, { apiList, options }));
+  /********* 生成API函数导出方法 -- 结束 ***********/
+
+  return result;
+};
+`;
+/**------------------------------  内置(API模板【TS】) -- 结束  ------------------------------**/
 
 export const API_TPL_DEMO1 =
   COMMON_HEAD +

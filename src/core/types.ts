@@ -44,7 +44,6 @@ export class Field implements FieldInterface {
 
 // API
 export interface ApiInterface {
-  // 接口名称
   label: string;
   // 接口地址
   url: string;
@@ -64,8 +63,12 @@ export interface ApiInterface {
   requestContentType: string;
   // 请求数据字段集合
   requests: Array<FieldInterface>;
+  // 接口名称
+  reqInterface?: { name: string; value: string };
   // 响应数据字段集合
   responses: Array<FieldInterface>;
+  // 接口名称
+  respInterface?: { name: string; value: string };
 }
 
 export class Api implements ApiInterface {
@@ -109,6 +112,12 @@ export class ProjectOptions {
   cancelSameRequest = false;
   // 一些头部模板文本
   headText = `import request from '@/utils/request'`;
+  // 响应字段摘取
+  respFieldPick = 'data';
+  // 请求数据参数类型约束
+  limitResType = true;
+  // 响应数据参数类型约束
+  limitRespType = true;
 
   // 是否生成分号
   semi = true;

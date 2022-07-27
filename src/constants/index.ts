@@ -1,9 +1,11 @@
-import { API_TPL1000 } from '@/constants/tpl/api';
+import { API_TPL1000, API_TPL9000 } from '@/constants/tpl/api';
 import {
   REQ_RESP_TPL2000,
+  REQ_RESP_TPL2003,
   REQ_RESP_TPL2002,
   REQ_RESP_TPL2100,
   REQ_RESP_TPL2102,
+  REQ_RESP_TPL2103,
   REQ_RESP_TPL5000,
   REQ_RESP_TPL6000,
   REQ_RESP_TPL6001,
@@ -27,7 +29,10 @@ export const SECRET_KEY = 'JK#3212%SFKKNSDSFSDKFJLJKLHJSDJUWSD';
 export const FIELD_NAMES = { title: 'key', key: 'uid' };
 
 export const TPL_MODEL_STATE = {
-  api: [new Tpl('内置(API模板)', API_TPL1000, -1, true, 'API_TPL1000')],
+  api: [
+    new Tpl('内置(API模板)', API_TPL1000, -1, false, 'API_TPL1000'),
+    new Tpl('内置(API模板【TS】)', API_TPL9000, -1, true, 'API_TPL9000'),
+  ],
   reqResp: [
     new Tpl(
       '内置(Vue-表格模板[element-ui表格])',
@@ -82,6 +87,20 @@ export const TPL_MODEL_STATE = {
       -1,
       false,
       'REQ_RESP_TPL6001',
+    ),
+    new Tpl(
+      '内置(ZtzTable组件-表格)',
+      REQ_RESP_TPL2003,
+      -1,
+      false,
+      'REQ_RESP_TPL2003',
+    ),
+    new Tpl(
+      '内置(ZtzTable组件-表单)',
+      REQ_RESP_TPL2103,
+      -1,
+      false,
+      'REQ_RESP_TPL2103',
     ),
   ],
 };

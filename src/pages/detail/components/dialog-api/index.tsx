@@ -15,16 +15,17 @@ import {
 } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 
-import { checkType } from '@/utils';
+import { checkType, filterField, getInterfaceName } from '@/utils';
 import CodeBox from '@/components/code-box';
 import { API_TPL_DEMO1 } from '@/constants/tpl/api';
-import { Tpl, generateTpl, getCopyName } from '@/core';
+import { Tpl, generateTpl, getCopyName, processFieldTree } from '@/core';
 import { ApiInterface, Project, ProjectOptions } from '@/core/types';
 import DialogApiEdit from '@/pages/detail/components/dialog-api-edit';
+import { REQ_RESP_TPL5000 } from '@/constants/tpl/req-resp';
 
 const { Option } = Select;
 const formItemLayout = {
-  labelCol: { style: { width: '84px' } },
+  labelCol: { style: { width: '100px' } },
 };
 
 class DialogApiOptions extends ProjectOptions {
@@ -101,6 +102,26 @@ const DialogApi: FC<DialogApiProps> = ({
   ) => {
     const o = checkType(values, 'Object') ? values : options;
     const tplEntity = apiTplList.find((t: Tpl) => t.uid === o?.tplUid);
+    items.forEach((item) => {
+      const [reqInterface, respInterface] = generateTpl(
+        REQ_RESP_TPL5000,
+        item,
+        item.requests,
+        filterField(item.responses, o?.respFieldPick),
+      );
+      const reqInterfaceName = getInterfaceName(reqInterface);
+      const respInterfaceName = getInterfaceName(respInterface);
+      const hasReqInterface = reqInterfaceName && reqInterface;
+      const hasRespInterface = respInterfaceName && respInterface;
+      item.reqInterface = {
+        value: hasReqInterface ? reqInterface : '',
+        name: hasReqInterface ? reqInterfaceName : '',
+      };
+      item.respInterface = {
+        value: hasRespInterface ? respInterface : '',
+        name: hasRespInterface ? respInterfaceName : '',
+      };
+    });
     if (tplEntity) {
       setTplCodeList(
         generateTpl(tplEntity.value, items, o, () => {
@@ -242,6 +263,58 @@ const DialogApi: FC<DialogApiProps> = ({
                   ))}
                 </Select>
               </Form.Item>
+              {watchTplUid === 'API_TPL9000' && (
+                <>
+                  <Form.Item name="respFieldPick" label="响应字段摘选">
+                    <Input
+                      maxLength={32}
+                      onChange={(e) => {
+                        dispatch?.({
+                          type: 'swagger/updateOptions',
+                          payload: {
+                            project,
+                            data: { respFieldPick: e.target.value },
+                          },
+                        });
+                      }}
+                    />
+                  </Form.Item>
+                  <Form.Item name="limitResType" valuePropName="checked">
+                    <Checkbox
+                      onChange={(e) => {
+                        dispatch?.({
+                          type: 'swagger/updateOptions',
+                          payload: {
+                            project,
+                            data: { limitResType: e.target.checked },
+                          },
+                        });
+                      }}
+                    >
+                      <span className="white-space-nowrap">
+                        请求数据参数类型约束
+                      </span>
+                    </Checkbox>
+                  </Form.Item>
+                  <Form.Item name="limitRespType" valuePropName="checked">
+                    <Checkbox
+                      onChange={(e) => {
+                        dispatch?.({
+                          type: 'swagger/updateOptions',
+                          payload: {
+                            project,
+                            data: { limitRespType: e.target.checked },
+                          },
+                        });
+                      }}
+                    >
+                      <span className="white-space-nowrap">
+                        响应数据参数类型约束
+                      </span>
+                    </Checkbox>
+                  </Form.Item>
+                </>
+              )}
               {!watchOnlyApi && (
                 <>
                   <Form.Item name="headText" label="头部内容">
