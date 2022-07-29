@@ -113,7 +113,7 @@ export class ProjectOptions {
   // 一些头部模板文本
   headText = `import request from '@/utils/request'`;
   // 响应字段摘取
-  respFieldPick = 'data';
+  respFieldPick = '';
   // 请求数据参数类型约束
   limitResType = true;
   // 响应数据参数类型约束
